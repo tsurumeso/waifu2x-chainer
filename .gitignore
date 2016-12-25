@@ -1,0 +1,6 @@
+*.pyc
+visualize.py
+scale_test.py
+result.png
+test/
+dataset/
