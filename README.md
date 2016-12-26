@@ -41,12 +41,21 @@ python waifu2x.py --test
 
 ## Computational graphs
 
-|Architecture|Graph|
-|---|---|
-|VGG_7l|![](https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/VGG_7l_cgraph.png)|
-|UpConv_7l|![](https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/UpConv_7l_cgraph.png)|
-|SRResNet_10l|![](https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/SRResNet_10l_cgraph.png)|
-|ResUpConv_10l|![](https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/ResUpConv_10l_cgraph.png)|
+- VGG_7l
+
+  <img src="https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/VGG_7l_cgraph.png" height="200">
+  
+- UpConv_7l
+
+  <img src="https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/UpConv_7l_cgraph.png" height="200">
+  
+- SRResNet_10l
+
+  <img src="https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/SRResNet_10l_cgraph.png" height="200">
+  
+- ResUpConv_10l
+
+  <img src="https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/ResUpConv_10l_cgraph.png" width="886">
 
 ## References
 
