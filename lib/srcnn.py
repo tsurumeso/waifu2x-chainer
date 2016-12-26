@@ -66,15 +66,17 @@ class SRResBlock(chainer.Chain):
             conv2=L.Convolution2D(out_channels, out_channels, 3),
         )
         if in_channels != out_channels:
-            conv_skip = L.Convolution2D(in_channels, out_channels, 1)
-            self.add_link('conv_skip', conv_skip)
+            conv_bridge = L.Convolution2D(in_channels, out_channels, 1)
+            self.add_link('conv_bridge', conv_bridge)
 
     def __call__(self, x):
         h = F.leaky_relu(self.conv1(x), self.slope)
         h = F.leaky_relu(self.conv2(h), self.slope)
         if self.in_channels != self.out_channels:
-            x = self.conv_skip(x)
-        return h + x[:, :, 2:-2, 2:-2]
+            x = self.conv_bridge(x[:, :, 2:-2, 2:-2])
+        else:
+            x = x[:, :, 2:-2, 2:-2]
+        return h + x
 
 
 class SRResNet_10l(chainer.Chain):
@@ -134,7 +136,7 @@ class ResUpConv_10l(chainer.Chain):
             res5=SRResBlock(128, 128),
             conv6=L.Convolution2D(128, 128, 3),
             conv_be=L.Convolution2D(128, ch, 3),
-            conv_skip=L.Convolution2D(64, 128, 1),
+            conv_bridge=L.Convolution2D(64, 128, 1),
         )
 
     def __call__(self, x):
@@ -145,7 +147,7 @@ class ResUpConv_10l(chainer.Chain):
         h = self.res4(h)
         h = self.res5(h)
         h = F.leaky_relu(self.conv6(h), 0.1)
-        h = h + self.conv_skip(skip[:, :, 11:-11, 11:-11])
+        h = h + self.conv_bridge(skip[:, :, 11:-11, 11:-11])
         h = self.conv_be(h)
         return h
 
