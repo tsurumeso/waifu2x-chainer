@@ -69,13 +69,6 @@ def validate_inner_epoch(model, cfg, valid_x, valid_y):
 
 
 def train():
-    archs = {
-        'VGG_7l': srcnn.VGG_7l,
-        'UpConv_7l': srcnn.UpConv_7l,
-        'SRResNet_10l': srcnn.SRResNet_10l,
-        'ResUpConv_10l': srcnn.ResUpConv_10l,
-    }
-
     print '* loading datalist...',
     datalist = utils.load_datalist(args.dataset_dir)
     valid_num = int(math.ceil(args.validation_rate * len(datalist)))
@@ -93,7 +86,7 @@ def train():
     else:
         model_name = args.model_name.rstrip('.npz') + '.npz'
 
-    model = archs[args.arch](args.ch)
+    model = srcnn.archs[args.arch](args.ch)
     if args.finetune is not None:
         chainer.serializers.load_npz(args.finetune, model)
 

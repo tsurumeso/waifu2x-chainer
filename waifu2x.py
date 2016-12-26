@@ -9,13 +9,6 @@ from lib import srcnn
 from lib import reconstruct
 
 
-archs = {
-    'VGG_7l': srcnn.VGG_7l,
-    'UpConv_7l': srcnn.UpConv_7l,
-    'SRResNet_10l': srcnn.SRResNet_10l,
-    'ResUpConv_10l': srcnn.ResUpConv_10l,
-}
-
 p = argparse.ArgumentParser()
 p.add_argument('--gpu', type=int, default=-1)
 p.add_argument('--src', default='images/test.jpg')
@@ -43,11 +36,11 @@ ch = 3 if args.color == 'rgb' else 1
 model_dir = 'models/%s' % args.arch.lower()
 if args.scale:
     model_name = '%s/anime_style_scale_%s.npz' % (model_dir, args.color)
-    model_scale = archs[args.arch](ch)
+    model_scale = srcnn.archs[args.arch](ch)
     chainer.serializers.load_npz(model_name, model_scale)
 if args.noise:
     model_name = '%s/anime_style_noise%d_%s.npz' % (model_dir, args.noise_level, args.color)
-    model_noise = archs[args.arch](ch)
+    model_noise = srcnn.archs[args.arch](ch)
     chainer.serializers.load_npz(model_name, model_noise)
 
 if args.gpu >= 0:
