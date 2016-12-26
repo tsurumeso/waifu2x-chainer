@@ -1,3 +1,4 @@
+import os
 import argparse
 import numpy as np
 import chainer
@@ -52,17 +53,22 @@ if args.gpu >= 0:
         model_noise.to_gpu()
 
 src = dst = Image.open(args.src)
+basename = os.path.basename(args.src)
+output, ext = os.path.splitext(basename)
 if args.noise:
-    print 'Noise reduction...',
+    print 'Level %d denoising...' % args.noise_level,
     dst = reconstruct.noise(model_noise, dst, args.block_size, args.batch_size)
+    output += '(noise%d)' % args.noise_level
     print 'OK'
 if args.scale:
-    print '2x upsamling...',
+    print '2x upsampling...',
     dst = reconstruct.scale(model_scale, dst, args.block_size, args.batch_size)
+    output += '(scale2x)'
     print 'OK'
 
-dst.save('result.png')
-print 'Output saved as \'result.png\''
+output += '(%s).png' % args.arch.lower()
+dst.save(output)
+print 'Output saved as \'%s\'' % output
 
 if not args.psnr == '':
     original = iproc.read_image_rgb_uint8(args.psnr)
