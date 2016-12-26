@@ -148,3 +148,11 @@ class ResUpConv_10l(chainer.Chain):
         h = h + self.conv_skip(skip[:, :, 11:-11, 11:-11])
         h = self.conv_be(h)
         return h
+
+
+archs = {
+    'VGG_7l': VGG_7l,
+    'UpConv_7l': UpConv_7l,
+    'SRResNet_10l': SRResNet_10l,
+    'ResUpConv_10l': ResUpConv_10l,
+}
