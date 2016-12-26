@@ -39,7 +39,16 @@ git clone https://github.com/tsurumeso/waifu2x-chainer.git
 python waifu2x.py --test
 ```
 
+## Computational graphs
+
+|Architecture|Graph|
+|---|---|
+|VGG_7l|![](https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/VGG_7l_cgraph.png)|
+|UpConv_7l|![](https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/UpConv_7l_cgraph.png)|
+|SRResNet_10l|![](https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/SRResNet_10l_cgraph.png)|
+|ResUpConv_10l|![](https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/ResUpConv_10l_cgraph.png)|
+
 ## References
 
-- [2] nagadomi, "Image Super-Resolution for Anime-Style Art", https://github.com/nagadomi/waifu2x
-- [3] "For Creators", http://piapro.net/en_for_creators.html
+- [1] nagadomi, "Image Super-Resolution for Anime-Style Art", https://github.com/nagadomi/waifu2x
+- [2] "For Creators", http://piapro.net/en_for_creators.html
