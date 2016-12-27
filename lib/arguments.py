@@ -13,16 +13,17 @@ class Namespace():
         setattr(self, key, value)
 
 
-p = argparse.ArgumentParser(description='Implementation of waifu2x-model-trainer using Chainer')
+p = argparse.ArgumentParser(description='Chainer implementation of waifu2x model trainer')
 p.add_argument('--gpu', type=int, default=-1)
 p.add_argument('--dataset_dir', required=True)
 p.add_argument('--validation_rate', type=float, default=0.05)
 p.add_argument('--color', choices=['y', 'rgb'], default='rgb')
-p.add_argument('--arch', choices=[
-        'VGG_7l',
-        'UpConv_7l',
-        'SRResNet_10l',
-        'ResUpConv_10l'], default='VGG_7l')
+p.add_argument('--arch',
+               choices=['VGG_7l',
+                        'UpConv_7l',
+                        'SRResNet_10l',
+                        'ResUpConv_10l'],
+               default='VGG_7l')
 p.add_argument('--method', choices=['noise', 'scale', 'noise_scale'], default='scale')
 p.add_argument('--noise_level', type=int, choices=[0, 1, 2, 3], default=1)
 p.add_argument('--nr_rate', type=float, default=0.75)

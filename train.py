@@ -73,7 +73,7 @@ def train():
     datalist = utils.load_datalist(args.dataset_dir)
     valid_num = int(math.ceil(args.validation_rate * len(datalist)))
     valid_list, train_list = datalist[:valid_num], datalist[valid_num:]
-    print 'done'    
+    print 'done'
 
     print '* loading model...',
     if args.model_name is None:
@@ -103,7 +103,7 @@ def train():
 
     train_config = copy.deepcopy(args)
     valid_config = copy.deepcopy(args)
-    
+
     print '* sampling validation dataset...',
     valid_config.max_size = 0
     valid_config.active_cropping_rate = 1.0
@@ -126,7 +126,7 @@ def train():
             valid_score = validate_inner_epoch(model, valid_config, valid_x, valid_y)
             if train_loss < best_loss:
                 best_loss = train_loss
-                print '    * best loss on train dataset: %f' % (train_loss)           
+                print '    * best loss on train dataset: %f' % (train_loss)
             if valid_score > best_score:
                 best_count = 0
                 best_score = valid_score

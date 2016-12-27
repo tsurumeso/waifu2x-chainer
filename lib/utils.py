@@ -29,7 +29,7 @@ def offset_size(model):
                 offset += child.W.data.shape[2] - 1
     return offset
 
-    
+
 def copy_model(src, dst):
     assert isinstance(src, chainer.Chain)
     assert isinstance(dst, chainer.Chain)

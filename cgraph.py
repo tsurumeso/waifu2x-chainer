@@ -7,11 +7,12 @@ from lib import srcnn
 
 
 p = argparse.ArgumentParser()
-p.add_argument('--arch', choices=[
-        'VGG_7l',
-        'UpConv_7l',
-        'SRResNet_10l',
-        'ResUpConv_10l'], default='VGG_7l')
+p.add_argument('--arch',
+               choices=['VGG_7l',
+                        'UpConv_7l',
+                        'SRResNet_10l',
+                        'ResUpConv_10l'],
+               default='VGG_7l')
 
 args = p.parse_args()
 

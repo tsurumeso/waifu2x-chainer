@@ -13,11 +13,12 @@ from lib import reconstruct
 p = argparse.ArgumentParser()
 p.add_argument('--gpu', type=int, default=-1)
 p.add_argument('--src', default='images/test.jpg')
-p.add_argument('--arch', choices=[
-        'VGG_7l',
-        'UpConv_7l',
-        'SRResNet_10l',
-        'ResUpConv_10l'], default='VGG_7l')
+p.add_argument('--arch',
+               choices=['VGG_7l',
+                        'UpConv_7l',
+                        'SRResNet_10l',
+                        'ResUpConv_10l'],
+               default='VGG_7l')
 p.add_argument('--scale', action='store_true')
 p.add_argument('--noise', action='store_true')
 p.add_argument('--noise_level', type=int, choices=[0, 1, 2, 3], default=1)

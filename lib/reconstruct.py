@@ -16,11 +16,11 @@ def blockwise(model, src, block_size, batch_size):
     ph = block_size - (h % block_size) + offset / 2
     pw = block_size - (w % block_size) + offset / 2
     src = np.array([np.pad(x, ((offset / 2, ph), (offset / 2, pw)), 'edge')
-        for x in src])
+                    for x in src])
     nh = src.shape[1] / block_size
     nw = src.shape[2] / block_size
 
-    x = np.ndarray((nh * nw, ch, block_size + offset, block_size + offset), dtype=np.float32)    
+    x = np.ndarray((nh * nw, ch, block_size + offset, block_size + offset), dtype=np.float32)
     for i in range(0, nh):
         ih = i * block_size
         for j in range(0, nw):
@@ -46,8 +46,8 @@ def blockwise(model, src, block_size, batch_size):
     dst = dst[:, :h, :w]
     dst = dst.transpose(1, 2, 0)
     return np.clip(dst, 0, 1) * 255
-    
-    
+
+
 def image(model, src):
     if src.ndim == 2:
         src = src[:, :, np.newaxis]
