@@ -13,9 +13,9 @@ def unsharp_mask(src, p):
         dst = np.array(pil)
         return dst.astype(np.float32)
     else:
-        return src   
- 
- 
+        return src
+
+
 def random_flip(src):
     rand = random.randint(0, 3)
     dst = src.copy()
@@ -24,22 +24,22 @@ def random_flip(src):
     elif rand == 2:
         dst = src[:, ::-1, :]
     elif rand == 3:
-        dst = src[::-1, ::-1, :]      
+        dst = src[::-1, ::-1, :]
     return dst
-    
-    
+
+
 def random_half(src, p):
     dst = array_to_wand(src)
     if np.random.uniform() < p:
-        # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman', 'gaussian', 
+        # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman', 'gaussian',
         # 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos'
         filter = ('box', 'box', 'blackman', 'cubic', 'lanczos')
         h, w = src.shape[:2]
         rand = random.randint(0, len(filter) - 1)
         dst.resize(w / 2, h / 2, filter[rand])
     return wand_to_array(dst)
-    
-    
+
+
 def shift_1px(src):
     direction = random.randint(0, 3)
     x_shift = 0

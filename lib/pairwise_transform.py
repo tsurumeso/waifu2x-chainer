@@ -32,7 +32,7 @@ def noise(src, level, rate, chroma):
         dst = _noise(src, level, chroma)
         return wand_to_array(dst)
     else:
-        return src 
+        return src
 
 
 def scale(src, bmin, bmax):
@@ -67,10 +67,10 @@ def crop_if_large(src, max_size):
     if max_size > 0 and src.shape[1] > max_size and src.shape[0] > max_size:
         point_x = random.randint(0, src.shape[1] - max_size)
         point_y = random.randint(0, src.shape[0] - max_size)
-        return src[point_y:point_y + max_size, point_x:point_x + max_size, :] 
+        return src[point_y:point_y + max_size, point_x:point_x + max_size, :]
     return src
-    
-    
+
+
 def preprocess(src, cfg):
     dst = src
     dst = random_half(src, cfg.random_half_rate)
@@ -80,7 +80,7 @@ def preprocess(src, cfg):
     dst = shift_1px(dst)
     return dst
 
-    
+
 def active_cropping(x, y, size, p, tries):
     if np.random.uniform() < p:
         best_mse = 0
@@ -89,22 +89,22 @@ def active_cropping(x, y, size, p, tries):
         for i in range(tries):
             point_x = random.randint(0, x.shape[1] - size)
             point_y = random.randint(0, x.shape[0] - size)
-            crop_x = x[point_y:point_y + size, point_x:point_x + size, :] 
-            crop_y = y[point_y:point_y + size, point_x:point_x + size, :] 
+            crop_x = x[point_y:point_y + size, point_x:point_x + size, :]
+            crop_y = y[point_y:point_y + size, point_x:point_x + size, :]
             mse = np.mean((crop_y - crop_x) ** 2)
             if mse >= best_mse:
                 best_mse = mse
                 best_cx = crop_x
-                best_cy = crop_y   
+                best_cy = crop_y
         return best_cx, best_cy
     else:
         point_x = random.randint(0, x.shape[1] - size)
         point_y = random.randint(0, x.shape[0] - size)
-        crop_x = x[point_y:point_y + size, point_x:point_x + size, :] 
-        crop_y = y[point_y:point_y + size, point_x:point_x + size, :] 
-        return crop_x, crop_y    
-    
-    
+        crop_x = x[point_y:point_y + size, point_x:point_x + size, :]
+        crop_y = y[point_y:point_y + size, point_x:point_x + size, :]
+        return crop_x, crop_y
+
+
 def pairwise_transform(src, insize, cfg):
     unstable_region_offset = 8
     top = (insize-cfg.crop_size) / 2
@@ -117,12 +117,12 @@ def pairwise_transform(src, insize, cfg):
         x = noise(y, cfg.noise_level, cfg.nr_rate, cfg.chroma_subsampling_rate)
     elif cfg.method == 'noise_scale':
         x = noise_scale(y, cfg.resize_blur_min, cfg.resize_blur_max,
-            cfg.noise_level, cfg.nr_rate, cfg.chroma_subsampling_rate)
+                        cfg.noise_level, cfg.nr_rate, cfg.chroma_subsampling_rate)
 
     y = y[unstable_region_offset:y.shape[0] - unstable_region_offset,
-        unstable_region_offset:y.shape[1] - unstable_region_offset]
+          unstable_region_offset:y.shape[1] - unstable_region_offset]
     x = x[unstable_region_offset:x.shape[0] - unstable_region_offset,
-        unstable_region_offset:x.shape[1] - unstable_region_offset]
+          unstable_region_offset:x.shape[1] - unstable_region_offset]
 
     xc_batch = np.ndarray((cfg.patches, cfg.ch, insize, insize), dtype=np.float32)
     yc_batch = np.ndarray((cfg.patches, cfg.ch, cfg.crop_size, cfg.crop_size), dtype=np.float32)
