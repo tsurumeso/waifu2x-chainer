@@ -1,6 +1,6 @@
 # waifu2x-chainer
 
-Chainer implementation of waifu2x model trainer. Note that the training procedure of waifu2x-chainer can be slightly different from original waifu2x.
+Chainer implementation of waifu2x[[1]](https://github.com/nagadomi/waifu2x) model trainer. Note that the training procedure of waifu2x-chainer can be slightly different from original waifu2x.
 
 ## Requirements
 
