@@ -48,19 +48,6 @@ def blockwise(model, src, block_size, batch_size):
     return np.clip(dst, 0, 1) * 255
 
 
-def image(model, src):
-    if src.ndim == 2:
-        src = src[:, :, np.newaxis]
-    h, w, ch = src.shape
-    xp = utils.get_model_module(model)
-    offset = utils.offset_size(model)
-    src = src.transpose(2, 0, 1)
-    x = np.array([np.pad(c, offset / 2, 'edge') for c in src])
-    x = xp.array(x).reshape(1, ch, h, w)
-    x = x.astype(np.float32) / 255.
-    return model(x)
-
-
 def scale(model, src, block_size, batch_size):
     src = src.resize((src.size[0] * 2, src.size[1] * 2), Image.NEAREST)
     if model.ch == 1:
