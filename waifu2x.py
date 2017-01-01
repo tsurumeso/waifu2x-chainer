@@ -41,7 +41,8 @@ if args.scale:
     model_scale = srcnn.archs[args.arch](ch)
     chainer.serializers.load_npz(model_name, model_scale)
 if args.noise:
-    model_name = '%s/anime_style_noise%d_%s.npz' % (model_dir, args.noise_level, args.color)
+    model_name = '%s/anime_style_noise%d_%s.npz' % \
+        (model_dir, args.noise_level, args.color)
     model_noise = srcnn.archs[args.arch](ch)
     chainer.serializers.load_npz(model_name, model_noise)
 

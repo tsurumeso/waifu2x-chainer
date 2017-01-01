@@ -17,8 +17,11 @@ from lib.loss.clipped_weighted_huber_loss import clipped_weighted_huber_loss
 
 def resampling(datalist, offset, cfg):
     insize = cfg.crop_size + offset
-    x = np.ndarray((cfg.patches * len(datalist), cfg.ch, insize, insize), dtype=np.float32)
-    y = np.ndarray((cfg.patches * len(datalist), cfg.ch, cfg.crop_size, cfg.crop_size), dtype=np.float32)
+    sample_size = cfg.patches * len(datalist)
+    x = np.ndarray((sample_size, cfg.ch, insize, insize),
+                   dtype=np.float32)
+    y = np.ndarray((sample_size, cfg.ch, cfg.crop_size, cfg.crop_size),
+                   dtype=np.float32)
     for i in range(len(datalist)):
         img = iproc.read_image_rgb_uint8(datalist[i])
         xc_batch, yc_batch = pairwise_transform(img, insize, cfg)
@@ -54,7 +57,7 @@ def train_inner_epoch(model, optimizer, cfg, train_x, train_y):
     return sum_loss / len(train_x)
 
 
-def validate_inner_epoch(model, cfg, valid_x, valid_y):
+def valid_inner_epoch(model, cfg, valid_x, valid_y):
     sum_score = 0
     xp = utils.get_model_module(model)
     perm = np.random.permutation(len(valid_x))
@@ -78,11 +81,13 @@ def train():
     print '* loading model...',
     if args.model_name is None:
         if args.method == 'noise':
-            model_name = 'anime_style_noise%d_%s.npz' % (args.noise_level, args.color)
+            model_name = 'anime_style_noise%d_%s.npz' \
+                % (args.noise_level, args.color)
         elif args.method == 'scale':
             model_name = 'anime_style_scale_%s.npz' % args.color
         elif args.method == 'noise_scale':
-            model_name = 'anime_style_noise%d_scale_%s.npz' % (args.noise_level, args.color)
+            model_name = 'anime_style_noise%d_scale_%s.npz' \
+                % (args.noise_level, args.color)
     else:
         model_name = args.model_name.rstrip('.npz') + '.npz'
 
@@ -122,15 +127,18 @@ def train():
         for inner_epoch in range(0, train_config.inner_epoch):
             best_count += 1
             print '  # inner epoch: %d' % inner_epoch
-            train_loss = train_inner_epoch(model, optimizer, train_config, train_x, train_y)
-            valid_score = validate_inner_epoch(model, valid_config, valid_x, valid_y)
+            train_loss = train_inner_epoch(model, optimizer, 
+                                           train_config, train_x, train_y)
+            valid_score = valid_inner_epoch(model, 
+                                            valid_config, valid_x, valid_y)
             if train_loss < best_loss:
                 best_loss = train_loss
                 print '    * best loss on train dataset: %f' % (train_loss)
             if valid_score > best_score:
                 best_count = 0
                 best_score = valid_score
-                print '    * best score on validation dataset: PSNR %f dB' % (valid_score)
+                print '    * best score on validation dataset: PSNR %f dB' \
+                    % (valid_score)
                 best_model = copy.deepcopy(model).to_cpu()
                 epoch_name = model_name.rstrip('.npz') + '_epoch%d.npz' % epoch
                 chainer.serializers.save_npz(epoch_name, best_model)
