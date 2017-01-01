@@ -20,13 +20,14 @@ def blockwise(model, src, block_size, batch_size):
     nh = src.shape[1] / block_size
     nw = src.shape[2] / block_size
 
-    x = np.ndarray((nh * nw, ch, block_size + offset, block_size + offset), dtype=np.float32)
+    block_offset = block_size + offset
+    x = np.ndarray((nh * nw, ch, block_offset, block_offset), dtype=np.float32)
     for i in range(0, nh):
         ih = i * block_size
         for j in range(0, nw):
             index = (i * nh) + j
             iw = j * block_size
-            src_ij = src[:, ih:ih + block_size + offset, iw:iw + block_size + offset]
+            src_ij = src[:, ih:ih + block_offset, iw:iw + block_offset]
             x[index, :, :, :] = src_ij
 
     y = np.ndarray((nh * nw, ch, block_size, block_size), dtype=np.float32)

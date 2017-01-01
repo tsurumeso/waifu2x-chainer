@@ -26,7 +26,7 @@ def _noise(src, level, chroma):
     return dst
 
 
-def noise(src, level, rate, chroma):
+def noise(src, rate, level, chroma):
     if np.random.uniform() < rate:
         src = array_to_wand(src)
         dst = _noise(src, level, chroma)
@@ -36,8 +36,9 @@ def noise(src, level, rate, chroma):
 
 
 def scale(src, bmin, bmax):
-    # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman', 'gaussian',
-    # 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos', 'sinc'
+    # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
+    # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
+    # 'sinc'
     h, w = src.shape[:2]
     filters = ('box', 'lanczos')
     blur = np.random.uniform(bmin, bmax)
@@ -48,9 +49,10 @@ def scale(src, bmin, bmax):
     return wand_to_array(dst)
 
 
-def noise_scale(src, bmin, bmax, level, rate, chroma):
-    # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman', 'gaussian',
-    # 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos', 'sinc'
+def noise_scale(src, bmin, bmax, rate, level, chroma):
+    # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
+    # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
+    # 'sinc'
     h, w = src.shape[:2]
     filters = ('box', 'lanczos')
     blur = np.random.uniform(bmin, bmax)
@@ -114,30 +116,38 @@ def pairwise_transform(src, insize, cfg):
     if cfg.method == 'scale':
         x = scale(y, cfg.resize_blur_min, cfg.resize_blur_max)
     elif cfg.method == 'noise':
-        x = noise(y, cfg.noise_level, cfg.nr_rate, cfg.chroma_subsampling_rate)
+        x = noise(y, cfg.nr_rate, cfg.noise_level, cfg.chroma_subsampling_rate)
     elif cfg.method == 'noise_scale':
         x = noise_scale(y, cfg.resize_blur_min, cfg.resize_blur_max,
-                        cfg.noise_level, cfg.nr_rate, cfg.chroma_subsampling_rate)
+                        cfg.nr_rate,
+                        cfg.noise_level,
+                        cfg.chroma_subsampling_rate)
 
     y = y[unstable_region_offset:y.shape[0] - unstable_region_offset,
           unstable_region_offset:y.shape[1] - unstable_region_offset]
     x = x[unstable_region_offset:x.shape[0] - unstable_region_offset,
           unstable_region_offset:x.shape[1] - unstable_region_offset]
 
-    xc_batch = np.ndarray((cfg.patches, cfg.ch, insize, insize), dtype=np.float32)
-    yc_batch = np.ndarray((cfg.patches, cfg.ch, cfg.crop_size, cfg.crop_size), dtype=np.float32)
+    patch_x = np.ndarray((cfg.patches, cfg.ch, insize, insize),
+                         dtype=np.float32)
+    patch_y = np.ndarray((cfg.patches, cfg.ch, cfg.crop_size, cfg.crop_size),
+                         dtype=np.float32)
 
     for i in range(cfg.patches):
-        crop_x, crop_y = active_cropping(x, y, insize, cfg.active_cropping_rate, cfg.active_cropping_tries)
+        crop_x, crop_y = active_cropping(x, y, insize,
+                                         cfg.active_cropping_rate,
+                                         cfg.active_cropping_tries)
         if cfg.ch == 1:
-            crop_x = np.array(Image.fromarray(crop_x).convert('YCbCr'), dtype=np.float32)
-            crop_y = np.array(Image.fromarray(crop_y).convert('YCbCr'), dtype=np.float32)
-            crop_y = crop_y[top:bottom, top:bottom, :]
-            xc_batch[i] = crop_x[:, :, 0].reshape(cfg.ch, insize, insize)
-            yc_batch[i] = crop_y[:, :, 0].reshape(cfg.ch, cfg.crop_size, cfg.crop_size)
+            ycbcr_x = Image.fromarray(crop_x).convert('YCbCr')
+            ycbcr_y = Image.fromarray(crop_y).convert('YCbCr')
+            crop_x = np.array(ycbcr_x)[:, :, 0]
+            crop_y = np.array(ycbcr_y)[top:bottom, top:bottom, 0]
+            patch_x[i] = crop_x.reshape(cfg.ch, insize, insize)
+            patch_y[i] = crop_y.reshape(cfg.ch, cfg.crop_size, cfg.crop_size)
         elif cfg.ch == 3:
-            crop_x = crop_x.astype(np.float32)
-            crop_y = crop_y[top:bottom, top:bottom, :].astype(np.float32)
-            xc_batch[i] = crop_x.transpose(2, 0, 1).reshape(cfg.ch, insize, insize)
-            yc_batch[i] = crop_y.transpose(2, 0, 1).reshape(cfg.ch, cfg.crop_size, cfg.crop_size)
-    return xc_batch, yc_batch
+            crop_y = crop_y[top:bottom, top:bottom, :]
+            crop_x = crop_x.transpose(2, 0, 1)
+            crop_y = crop_y.transpose(2, 0, 1)
+            patch_x[i] = crop_x.reshape(cfg.ch, insize, insize)
+            patch_y[i] = crop_y.reshape(cfg.ch, cfg.crop_size, cfg.crop_size)
+    return patch_x, patch_y

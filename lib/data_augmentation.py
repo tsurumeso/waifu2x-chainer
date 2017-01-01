@@ -9,8 +9,10 @@ def unsharp_mask(src, p):
         radius = random.randint(1, 3)
         percent = random.randint(10, 90)
         threshold = random.randint(0, 5)
-        pil = pil.filter(ImageFilter.UnsharpMask(radius=radius, percent=percent, threshold=threshold))
-        dst = np.array(pil)
+        unsharp = ImageFilter.UnsharpMask(radius=radius,
+                                          percent=percent,
+                                          threshold=threshold)
+        dst = np.array(pil.filter(unsharp))
         return dst.astype(np.float32)
     else:
         return src
@@ -31,8 +33,9 @@ def random_flip(src):
 def random_half(src, p):
     dst = array_to_wand(src)
     if np.random.uniform() < p:
-        # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman', 'gaussian',
-        # 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos'
+        # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
+        # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
+        # 'sinc'
         filter = ('box', 'box', 'blackman', 'cubic', 'lanczos')
         h, w = src.shape[:2]
         rand = random.randint(0, len(filter) - 1)
