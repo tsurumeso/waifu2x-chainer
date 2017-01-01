@@ -12,7 +12,7 @@ from lib import reconstruct
 
 p = argparse.ArgumentParser()
 p.add_argument('--gpu', type=int, default=-1)
-p.add_argument('--src', default='images/test.jpg')
+p.add_argument('--src', default='images/small_noisy1.jpg')
 p.add_argument('--arch',
                choices=['VGG_7l',
                         'UpConv_7l',
@@ -56,6 +56,7 @@ if args.gpu >= 0:
 src = dst = Image.open(args.src)
 basename = os.path.basename(args.src)
 output, ext = os.path.splitext(basename)
+output += '_'
 if args.noise:
     print 'Level %d denoising...' % args.noise_level,
     dst = reconstruct.noise(model_noise, dst, args.block_size, args.batch_size)
