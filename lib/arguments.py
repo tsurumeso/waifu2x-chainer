@@ -2,6 +2,8 @@ import os
 import argparse
 import numpy as np
 
+from lib import srcnn
+
 
 class Namespace():
 
@@ -20,10 +22,10 @@ p.add_argument('--dataset_dir', required=True)
 p.add_argument('--validation_rate', type=float, default=0.05)
 p.add_argument('--color', choices=['y', 'rgb'], default='rgb')
 p.add_argument('--arch',
-               choices=['VGG_7l',
-                        'UpConv_7l',
-                        'SRResNet_10l',
-                        'ResUpConv_10l'],
+               choices=['VGG_7l', '0',
+                        'UpConv_7l', '1',
+                        'SRResNet_10l', '2',
+                        'ResUpConv_10l', '3'],
                default='VGG_7l')
 p.add_argument('--method', choices=['noise', 'scale', 'noise_scale'],
                default='scale')
@@ -54,6 +56,8 @@ p.add_argument('--test_dir', default='./test')
 
 args = Namespace(vars(p.parse_args()))
 
+if srcnn.table.has_key(args.arch):
+    args.arch = srcnn.table[args.arch]
 if args.test:
     if not os.path.exists(args.test_dir):
         os.makedirs(args.test_dir)
