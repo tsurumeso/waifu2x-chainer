@@ -158,3 +158,10 @@ archs = {
     'SRResNet_10l': SRResNet_10l,
     'ResUpConv_10l': ResUpConv_10l,
 }
+
+table = {
+    '0': 'VGG_7l',
+    '1': 'UpConv_7l',
+    '2': 'SRResNet_10l',
+    '3': 'ResUpConv_10l',
+}
