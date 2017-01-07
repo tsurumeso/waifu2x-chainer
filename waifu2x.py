@@ -59,22 +59,27 @@ if __name__ == '__main__':
             model_noise.to_gpu()
 
     src = dst = Image.open(args.src)
+    icc_profile = src.info.get('icc_profile')
+
     basename = os.path.basename(args.src)
     output, ext = os.path.splitext(basename)
     output += '_'
+
     if args.noise:
         print 'Level %d denoising...' % args.noise_level,
-        dst = reconstruct.noise(model_noise, dst, args.block_size, args.batch_size)
+        dst = reconstruct.noise(model_noise, dst,
+                                args.block_size, args.batch_size)
         output += '(noise%d)' % args.noise_level
         print 'OK'
     if args.scale:
         print '2x upsampling...',
-        dst = reconstruct.scale(model_scale, dst, args.block_size, args.batch_size)
+        dst = reconstruct.scale(model_scale, dst,
+                                args.block_size, args.batch_size)
         output += '(scale2x)'
         print 'OK'
 
     output += '(%s).png' % args.arch.lower()
-    dst.save(output)
+    dst.save(output, icc_profile=icc_profile)
     print 'Output saved as \'%s\'' % output
 
     if not args.psnr == '':
