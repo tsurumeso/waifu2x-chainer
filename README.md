@@ -1,61 +1,71 @@
 # waifu2x-chainer
 
-Chainer implementation of waifu2x[[1]](https://github.com/nagadomi/waifu2x) model trainer. Note that the training procedure of waifu2x-chainer can be slightly different from original waifu2x.
+Chainer implementation of waifu2x[[1]](https://github.com/nagadomi/waifu2x) and its model trainer. Note that the training procedure of waifu2x-chainer can be slightly different from original waifu2x.
+
+## Summery
+
+<img src="https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/summery.png" width="886">
 
 ## Requirements
 
-Platform:
+#### Platform
   - Python 2.7.6+
   
-Python packages:
+#### Python packages
   - Chainer 1.18.0+
   - Pillow 3.0.0+
   - Wand 0.4.0+
   
-Additional dependencies:
+#### Additional dependencies
   - ImageMagick
   
 ## Installation
 
-### Install Python packages
+#### Install Python packages
 ```
 pip install chainer
 pip install pillow
 pip install wand
 ```
 
-### Install additional dependencies:
+#### Install additional dependencies
 ```
 sudo apt-get install ImageMagick
 ```
 
-### Getting waifu2x-chainer
+#### Getting waifu2x-chainer
 ```
 git clone https://github.com/tsurumeso/waifu2x-chainer.git
 ```
 
-### Testing reconstruction
+#### Testing
 ```
 python waifu2x.py --test
 ```
 
-## Computational graphs
+## Usage
 
-- VGG_7l
+#### Noise reduction
+```
+python waifu2x.py --noise --noise_level 1 --src <source image> --arch VGG_7l
+```
 
-  <img src="https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/VGG_7l_cgraph.png" height="200">
-  
-- UpConv_7l
+#### 2x upscaling
+```
+python waifu2x.py --scale --src <source image> --arch VGG_7l
+```
 
-  <img src="https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/UpConv_7l_cgraph.png" height="200">
-  
-- SRResNet_10l
+#### Noise reduction + 2x upscaling
+```
+python waifu2x.py --scale --noise --noise_level 1 --src <source image> --arch VGG_7l
+```
 
-  <img src="https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/SRResNet_10l_cgraph.png" height="200">
-  
-- ResUpConv_10l
+#### Train model
 
-  <img src="https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/ResUpConv_10l_cgraph.png" width="886">
+Please see template script at
+<a href="https://github.com/tsurumeso/waifu2x-chainer/tree/master/appendix/linux">appendix/linux</a>
+or
+<a href="https://github.com/tsurumeso/waifu2x-chainer/tree/master/appendix/windows">appendix/windows</a>
 
 ## References
 
