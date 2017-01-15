@@ -72,7 +72,7 @@ if __name__ == '__main__':
         output += '(noise%d)' % args.noise_level
         print 'OK'
     if args.scale:
-        print '2x upsampling...',
+        print '2x upscaling...',
         dst = reconstruct.scale(model_scale, dst,
                                 args.block_size, args.batch_size)
         output += '(scale2x)'
