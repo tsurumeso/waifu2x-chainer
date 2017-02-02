@@ -9,7 +9,7 @@ Chainer implementation of waifu2x[[1]](https://github.com/nagadomi/waifu2x) and 
 ## Requirements
 
 #### Platform
-  - Python 2.7.6+
+  - Python 2.7.6+, 3.6.0+
   
 #### Python packages
   - Chainer 1.18.0+
