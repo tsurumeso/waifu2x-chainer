@@ -1,4 +1,4 @@
-import cStringIO
+import six
 import numpy as np
 from chainer import cuda
 from PIL import Image
@@ -12,7 +12,7 @@ def read_image_rgb_uint8(path):
 
 
 def array_to_wand(src):
-    buf = cStringIO.StringIO()
+    buf = six.BytesIO()
     image = Image.fromarray(src)
     image.save(buf, 'BMP')
     dst = WandImage(blob=bytes(buf.getvalue()))
@@ -20,7 +20,7 @@ def array_to_wand(src):
 
 
 def wand_to_array(src):
-    image_str = cStringIO.StringIO(src.make_blob())
+    image_str = six.BytesIO(src.make_blob())
     image = Image.open(image_str).convert('RGB')
     dst = np.array(image, dtype=np.uint8)
     return dst

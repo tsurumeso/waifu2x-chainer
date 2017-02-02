@@ -56,7 +56,7 @@ p.add_argument('--test_dir', default='./test')
 
 args = Namespace(vars(p.parse_args()))
 
-if srcnn.table.has_key(args.arch):
+if args.arch in srcnn.table:
     args.arch = srcnn.table[args.arch]
 if args.test:
     if not os.path.exists(args.test_dir):

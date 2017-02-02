@@ -1,5 +1,7 @@
+from __future__ import division
+
 import random
-from iproc import *
+from lib.iproc import *
 from PIL import Image, ImageFilter
 
 
@@ -39,7 +41,7 @@ def random_half(src, p):
         filter = ('box', 'box', 'blackman', 'cubic', 'lanczos')
         h, w = src.shape[:2]
         rand = random.randint(0, len(filter) - 1)
-        dst.resize(w / 2, h / 2, filter[rand])
+        dst.resize(w // 2, h // 2, filter[rand])
     return wand_to_array(dst)
 
 

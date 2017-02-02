@@ -1,4 +1,4 @@
-from data_augmentation import *
+from lib.data_augmentation import *
 
 
 def _noise(src, level, chroma):
@@ -44,7 +44,7 @@ def scale(src, bmin, bmax):
     blur = np.random.uniform(bmin, bmax)
     rand = random.randint(0, len(filters)-1)
     dst = array_to_wand(src)
-    dst.resize(w / 2, h / 2, filters[rand], blur)
+    dst.resize(w // 2, h // 2, filters[rand], blur)
     dst.resize(w, h, 'box')
     return wand_to_array(dst)
 
@@ -58,7 +58,7 @@ def noise_scale(src, bmin, bmax, rate, level, chroma):
     blur = np.random.uniform(bmin, bmax)
     rand = random.randint(0, len(filters)-1)
     dst = array_to_wand(src)
-    dst.resize(w / 2, h / 2, filters[rand], blur)
+    dst.resize(w // 2, h // 2, filters[rand], blur)
     if np.random.uniform() < rate:
         dst = _noise(dst, level, chroma)
     dst.resize(w, h, 'box')
@@ -109,7 +109,7 @@ def active_cropping(x, y, size, p, tries):
 
 def pairwise_transform(src, insize, cfg):
     unstable_region_offset = 8
-    top = (insize-cfg.crop_size) / 2
+    top = (insize-cfg.crop_size) // 2
     bottom = insize - top
     y = preprocess(src, cfg)
 

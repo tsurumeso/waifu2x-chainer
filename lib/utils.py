@@ -1,5 +1,8 @@
+from __future__ import print_function
+
 import os
 import sys
+import six
 import chainer
 import chainer.functions as F
 import chainer.links as L
@@ -7,7 +10,7 @@ import chainer.links as L
 
 def get_model_module(model):
     if isinstance(model, chainer.Chain):
-        child = model.children().next()
+        child = six.next(model.children())
         return child.xp
 
 
@@ -51,8 +54,8 @@ def copy_model(src, dst):
                     match = False
                     break
             if not match:
-                print 'Ignore %s because of parameter mismatch' % child.name
+                print('Ignore %s because of parameter mismatch' % child.name)
                 continue
             for a, b in zip(child.namedparams(), dst_child.namedparams()):
                 b[1].data = a[1].data
-            print 'Copy %s' % child.name
+            print('Copy %s' % child.name)

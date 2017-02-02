@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import argparse
 import numpy as np
@@ -29,7 +31,7 @@ p.add_argument('--psnr', default='')
 p.add_argument('--test', action='store_true')
 
 args = p.parse_args()
-if srcnn.table.has_key(args.arch):
+if args.arch in srcnn.table:
     args.arch = srcnn.table[args.arch]
 if args.test:
     args.scale = True
@@ -66,22 +68,22 @@ if __name__ == '__main__':
     output += '_'
 
     if args.noise:
-        print 'Level %d denoising...' % args.noise_level,
+        print('Level %d denoising...' % args.noise_level, end=' ')
         dst = reconstruct.noise(model_noise, dst,
                                 args.block_size, args.batch_size)
         output += '(noise%d)' % args.noise_level
-        print 'OK'
+        print('OK')
     if args.scale:
-        print '2x upscaling...',
+        print('2x upscaling...', end=' ')
         dst = reconstruct.scale(model_scale, dst,
                                 args.block_size, args.batch_size)
         output += '(scale2x)'
-        print 'OK'
+        print('OK')
 
     output += '(%s).png' % args.arch.lower()
     dst.save(output, icc_profile=icc_profile)
-    print 'Output saved as \'%s\'' % output
+    print('Output saved as \'%s\'' % output)
 
     if not args.psnr == '':
         original = iproc.read_image_rgb_uint8(args.psnr)
-        print 'PSNR: ' + str(iproc.psnr(original, np.array(dst), 255.)) + ' dB'
+        print('PSNR: ' + str(iproc.psnr(original, np.array(dst), 255.)) + ' dB')
