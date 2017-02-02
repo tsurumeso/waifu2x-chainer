@@ -1,3 +1,5 @@
+from __future__ import division
+
 import numpy as np
 from PIL import Image
 from chainer import cuda
@@ -13,12 +15,12 @@ def blockwise(model, src, block_size, batch_size):
     xp = utils.get_model_module(model)
     src = src.transpose(2, 0, 1) / 255.
 
-    ph = block_size - (h % block_size) + offset / 2
-    pw = block_size - (w % block_size) + offset / 2
-    src = np.array([np.pad(x, ((offset / 2, ph), (offset / 2, pw)), 'edge')
+    ph = block_size - (h % block_size) + offset // 2
+    pw = block_size - (w % block_size) + offset // 2
+    src = np.array([np.pad(x, ((offset // 2, ph), (offset // 2, pw)), 'edge')
                     for x in src])
-    nh = src.shape[1] / block_size
-    nw = src.shape[2] / block_size
+    nh = src.shape[1] // block_size
+    nw = src.shape[2] // block_size
 
     block_offset = block_size + offset
     x = np.ndarray((nh * nw, ch, block_offset, block_offset), dtype=np.float32)
