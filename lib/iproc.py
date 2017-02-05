@@ -1,3 +1,5 @@
+from __future__ import division
+
 import six
 import numpy as np
 from chainer import cuda
@@ -31,6 +33,13 @@ def jpeg(src, sampling_factor, quality):
     src.compression_quality = quality
     src.options['jpeg:sampling-factor'] = sampling_factor
     return WandImage(blob=src.make_blob())
+
+
+def inv(rot, flip=False):
+    if flip:
+        return lambda x: np.rot90(x, rot // 90, axes=(0, 1))[:, ::-1, :]
+    else:
+        return lambda x: np.rot90(x, rot // 90, axes=(0, 1))
 
 
 def to_image(data, ch):

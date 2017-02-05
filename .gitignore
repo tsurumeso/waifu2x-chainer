@@ -1,6 +1,7 @@
+*~
 *.pyc
 visualize.py
-scale_test.py
+residual.py
 result.png
 test/
 dataset/

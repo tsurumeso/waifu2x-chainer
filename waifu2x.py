@@ -25,6 +25,7 @@ p.add_argument('--scale', action='store_true')
 p.add_argument('--noise', action='store_true')
 p.add_argument('--noise_level', type=int, choices=[0, 1, 2, 3], default=1)
 p.add_argument('--color', choices=['y', 'rgb'], default='rgb')
+p.add_argument('--tta', action='store_true')
 p.add_argument('--block_size', type=int, default=64)
 p.add_argument('--batch_size', type=int, default=8)
 p.add_argument('--psnr', default='')
@@ -66,17 +67,24 @@ if __name__ == '__main__':
     basename = os.path.basename(args.src)
     output, ext = os.path.splitext(basename)
     output += '_'
+    
+    denoise_func = reconstruct.noise
+    upscale_func = reconstruct.scale
+    if args.tta:
+        denoise_func = reconstruct.noise_tta
+        upscale_func = reconstruct.scale_tta
+        output += '(tta)'
 
     if args.noise:
-        print('Level %d denoising...' % args.noise_level, end=' ')
-        dst = reconstruct.noise(model_noise, dst,
-                                args.block_size, args.batch_size)
+        print('Level %d denoising...' % args.noise_level, end=' ', flush=True)
+        dst = denoise_func(model_noise, dst,
+                           args.block_size, args.batch_size)
         output += '(noise%d)' % args.noise_level
         print('OK')
     if args.scale:
-        print('2x upscaling...', end=' ')
-        dst = reconstruct.scale(model_scale, dst,
-                                args.block_size, args.batch_size)
+        print('2x upscaling...', end=' ', flush=True)
+        dst = upscale_func(model_scale, dst,
+                           args.block_size, args.batch_size)
         output += '(scale2x)'
         print('OK')
 
