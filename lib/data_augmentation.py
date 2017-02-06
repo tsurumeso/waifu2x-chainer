@@ -1,11 +1,13 @@
 from __future__ import division
 
 import random
-from lib.iproc import *
+import numpy as np
 from PIL import Image, ImageFilter
 
+from lib import iproc
 
-def unsharp_mask(src, p):
+
+def random_unsharp_mask(src, p):
     if np.random.uniform() < p:
         pil = Image.fromarray(src)
         radius = random.randint(1, 3)
@@ -33,7 +35,7 @@ def random_flip(src):
 
 
 def random_half(src, p):
-    dst = array_to_wand(src)
+    dst = iproc.array_to_wand(src)
     if np.random.uniform() < p:
         # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
         # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
@@ -42,10 +44,10 @@ def random_half(src, p):
         h, w = src.shape[:2]
         rand = random.randint(0, len(filter) - 1)
         dst.resize(w // 2, h // 2, filter[rand])
-    return wand_to_array(dst)
+    return iproc.wand_to_array(dst)
 
 
-def shift_1px(src):
+def random_shift_1px(src):
     direction = random.randint(0, 3)
     x_shift = 0
     y_shift = 0

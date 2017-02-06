@@ -82,20 +82,22 @@ if __name__ == '__main__':
     if args.scale:
         iter = 0
         output += '(scale%.1fx)' % args.scale_factor
-        six.print_('%.1fx upscaling...' % args.scale_factor, end=' ', flush=True)
         while iter < int(np.ceil(args.scale_factor / 2)):
             iter += 1
+            six.print_('2.0x upscaling...', end=' ', flush=True)
             if args.tta:
                 dst = reconstruct.scale_tta(model_scale, dst, args.tta_level,
                                             args.block_size, args.batch_size)
             else:
                 dst = reconstruct.scale(model_scale, dst,
                                         args.block_size, args.batch_size)
+            six.print_('OK')
         if np.round(args.scale_factor % 2.0, 6) != 0:
+            six.print_('resizing...', end=' ', flush=True)
             dst_w = int(np.round(src.size[0] * args.scale_factor))
             dst_h = int(np.round(src.size[1] * args.scale_factor))
             dst = dst.resize((dst_w, dst_h), Image.ANTIALIAS)
-        six.print_('OK')
+            six.print_('OK')
 
     output += '(%s).png' % args.arch.lower()
     dst.save(output, icc_profile=icc_profile)

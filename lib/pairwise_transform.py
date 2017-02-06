@@ -1,4 +1,14 @@
-from lib.data_augmentation import *
+from __future__ import division
+
+import random
+import numpy as np
+from PIL import Image
+
+from lib import iproc
+from lib.data_augmentation import random_half
+from lib.data_augmentation import random_flip
+from lib.data_augmentation import random_shift_1px
+from lib.data_augmentation import random_unsharp_mask
 
 
 def _noise(src, level, chroma):
@@ -10,27 +20,27 @@ def _noise(src, level, chroma):
     if np.random.uniform() < chroma:
         sampling_factor = '2x1,1x1,1x1'
     if level == 0:
-        dst = jpeg(src, sampling_factor, quality0)
+        dst = iproc.jpeg(src, sampling_factor, quality0)
     elif level == 1:
-        dst = jpeg(src, sampling_factor, quality1)
+        dst = iproc.jpeg(src, sampling_factor, quality1)
     elif level == 2:
         if np.random.uniform() > 0.5:
-            src = jpeg(src, sampling_factor, quality1)
-        dst = jpeg(src, sampling_factor, quality2)
+            src = iproc.jpeg(src, sampling_factor, quality1)
+        dst = iproc.jpeg(src, sampling_factor, quality2)
     elif level == 3:
         if np.random.uniform() > 0.5:
-            src = jpeg(src, sampling_factor, quality1)
+            src = iproc.jpeg(src, sampling_factor, quality1)
         if np.random.uniform() > 0.5:
-            src = jpeg(src, sampling_factor, quality2)
-        dst = jpeg(src, sampling_factor, quality3)
+            src = iproc.jpeg(src, sampling_factor, quality2)
+        dst = iproc.jpeg(src, sampling_factor, quality3)
     return dst
 
 
 def noise(src, rate, level, chroma):
     if np.random.uniform() < rate:
-        src = array_to_wand(src)
+        src = iproc.array_to_wand(src)
         dst = _noise(src, level, chroma)
-        return wand_to_array(dst)
+        return iproc.wand_to_array(dst)
     else:
         return src
 
@@ -43,10 +53,10 @@ def scale(src, bmin, bmax):
     filters = ('box', 'lanczos')
     blur = np.random.uniform(bmin, bmax)
     rand = random.randint(0, len(filters)-1)
-    dst = array_to_wand(src)
+    dst = iproc.array_to_wand(src)
     dst.resize(w // 2, h // 2, filters[rand], blur)
     dst.resize(w, h, 'box')
-    return wand_to_array(dst)
+    return iproc.wand_to_array(dst)
 
 
 def noise_scale(src, bmin, bmax, rate, level, chroma):
@@ -78,8 +88,8 @@ def preprocess(src, cfg):
     dst = random_half(src, cfg.random_half_rate)
     dst = crop_if_large(dst, cfg.max_size)
     dst = random_flip(dst)
-    dst = unsharp_mask(dst, cfg.random_unsharp_mask_rate)
-    dst = shift_1px(dst)
+    dst = random_unsharp_mask(dst, cfg.random_unsharp_mask_rate)
+    dst = random_shift_1px(dst)
     return dst
 
 
