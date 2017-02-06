@@ -1,6 +1,5 @@
-from __future__ import print_function
-
 import os
+import six
 import argparse
 import numpy as np
 import chainer
@@ -76,22 +75,22 @@ if __name__ == '__main__':
         output += '(tta)'
 
     if args.noise:
-        print('Level %d denoising...' % args.noise_level, end=' ', flush=True)
+        six.print_('Level %d denoising...' % args.noise_level, end=' ', flush=True)
         dst = denoise_func(model_noise, dst,
                            args.block_size, args.batch_size)
         output += '(noise%d)' % args.noise_level
-        print('OK')
+        six.print_('OK')
     if args.scale:
-        print('2x upscaling...', end=' ', flush=True)
+        six.print_('2x upscaling...', end=' ', flush=True)
         dst = upscale_func(model_scale, dst,
                            args.block_size, args.batch_size)
         output += '(scale2x)'
-        print('OK')
+        six.print_('OK')
 
     output += '(%s).png' % args.arch.lower()
     dst.save(output, icc_profile=icc_profile)
-    print('Output saved as \'%s\'' % output)
+    six.print_('Output saved as \'%s\'' % output)
 
     if not args.psnr == '':
         original = iproc.read_image_rgb_uint8(args.psnr)
-        print('PSNR: ' + str(iproc.psnr(original, np.array(dst), 255.)) + ' dB')
+        six.print_('PSNR: ' + str(iproc.psnr(original, np.array(dst), 255.)) + ' dB')

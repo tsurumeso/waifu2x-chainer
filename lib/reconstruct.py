@@ -1,5 +1,6 @@
 from __future__ import division
 
+import six
 import numpy as np
 from PIL import Image
 from chainer import cuda
@@ -69,7 +70,7 @@ def scale_tta(model, src, block_size, batch_size):
     patterns = get_tta_patterns(src)
     dst = np.zeros((src.size[1] * 2, src.size[0] * 2, 3))
     for i, (src, inv) in enumerate(patterns):
-        print(i, end=' ', flush=True)
+        six.print_(i, end=' ', flush=True)
         src = src.resize((src.size[0] * 2, src.size[1] * 2), Image.NEAREST)
         src = np.array(src.convert('RGB'), dtype=np.uint8)
         tmp = blockwise(model, src, block_size, batch_size)
@@ -86,7 +87,7 @@ def noise_tta(model, src, block_size, batch_size):
     patterns = get_tta_patterns(src)
     dst = np.zeros((src.size[1], src.size[0], 3))
     for i, (src, inv) in enumerate(patterns):
-        print(i, end=' ', flush=True)
+        six.print_(i, end=' ', flush=True)
         src = np.array(src.convert('RGB'), dtype=np.uint8)
         tmp = blockwise(model, src, block_size, batch_size)
         if not inv is None:

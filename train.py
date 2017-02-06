@@ -47,7 +47,7 @@ def train_inner_epoch(model, optimizer, cfg, train_x, train_y):
                 iy = iproc.to_image(batch_y[j], cfg.ch)
                 ix.save(os.path.join(cfg.test_dir, 'test_%d_x.png' % j))
                 iy.save(os.path.join(cfg.test_dir, 'test_%d_y.png' % j))
-            print('    * press any key...', end=' ')
+            six.print_('    * press any key...', end=' ')
             six.moves.input()
 
         optimizer.zero_grads()
@@ -75,13 +75,13 @@ def valid_inner_epoch(model, cfg, valid_x, valid_y):
 
 
 def train():
-    print('* loading datalist...', end=' ')
+    six.print_('* loading datalist...', end=' ')
     datalist = utils.load_datalist(args.dataset_dir)
     valid_num = int(math.ceil(args.validation_rate * len(datalist)))
     valid_list, train_list = datalist[:valid_num], datalist[valid_num:]
-    print('done')
+    six.print_('done')
 
-    print('* loading model...', end=' ')
+    six.print_('* loading model...', end=' ')
     if args.model_name is None:
         if args.method == 'noise':
             model_name = 'anime_style_noise%d_%s.npz' \
@@ -107,40 +107,40 @@ def train():
     offset = utils.offset_size(model)
     optimizer = optimizers.Adam(alpha=args.learning_rate)
     optimizer.setup(model)
-    print('done')
+    six.print_('done')
 
     train_config = copy.deepcopy(args)
     valid_config = copy.deepcopy(args)
 
-    print('* sampling validation dataset...', end=' ')
+    six.print_('* sampling validation dataset...', end=' ')
     valid_config.max_size = 0
     valid_config.active_cropping_rate = 1.0
     valid_config.patches = train_config.validation_crops
     valid_x, valid_y = resampling(valid_list, offset, valid_config)
-    print('done')
+    six.print_('done')
 
     best_count = 0
     best_score = 0
     best_loss = np.inf
     for epoch in range(0, train_config.epoch):
-        print('### epoch: %d ###' % epoch)
-        print('  * resampling train dataset...', end=' ')
+        six.print_('### epoch: %d ###' % epoch)
+        six.print_('  * resampling train dataset...', end=' ')
         train_x, train_y = resampling(train_list, offset, train_config)
-        print('done')
+        six.print_('done')
         for inner_epoch in range(0, train_config.inner_epoch):
             best_count += 1
-            print('  # inner epoch: %d' % inner_epoch)
+            six.print_('  # inner epoch: %d' % inner_epoch)
             train_loss = train_inner_epoch(model, optimizer, 
                                            train_config, train_x, train_y)
             valid_score = valid_inner_epoch(model, 
                                             valid_config, valid_x, valid_y)
             if train_loss < best_loss:
                 best_loss = train_loss
-                print('    * best loss on train dataset: %f' % (train_loss))
+                six.print_('    * best loss on train dataset: %f' % (train_loss))
             if valid_score > best_score:
                 best_count = 0
                 best_score = valid_score
-                print('    * best score on validation dataset: PSNR %f dB'
+                six.print_('    * best score on validation dataset: PSNR %f dB'
                     % (valid_score))
                 best_model = copy.deepcopy(model).to_cpu()
                 epoch_name = model_name.rstrip('.npz') + '_epoch%d.npz' % epoch
@@ -151,7 +151,7 @@ def train():
                 if optimizer.alpha < train_config.lr_min:
                     optimizer.alpha = train_config.lr_min
                 else:
-                    print('    * learning rate decay: %f' % (optimizer.alpha))
+                    six.print_('    * learning rate decay: %f' % (optimizer.alpha))
 
 
 warnings.filterwarnings('ignore')
