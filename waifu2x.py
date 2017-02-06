@@ -21,13 +21,14 @@ p.add_argument('--arch',
                         'ResUpConv_10l', '3'],
                default='VGG_7l')
 p.add_argument('--scale', action='store_true')
+p.add_argument('--scale_factor', type=float, default=2.0)
 p.add_argument('--noise', action='store_true')
 p.add_argument('--noise_level', type=int, choices=[0, 1, 2, 3], default=1)
 p.add_argument('--color', choices=['y', 'rgb'], default='rgb')
 p.add_argument('--tta', action='store_true')
+p.add_argument('--tta_level', type=int, choices=[4, 8], default=8)
 p.add_argument('--block_size', type=int, default=64)
 p.add_argument('--batch_size', type=int, default=8)
-p.add_argument('--psnr', default='')
 p.add_argument('--test', action='store_true')
 
 args = p.parse_args()
@@ -38,14 +39,15 @@ if args.test:
     args.noise = True
     args.noise_level = 1
 
-
 if __name__ == '__main__':
     ch = 3 if args.color == 'rgb' else 1
     model_dir = 'models/%s' % args.arch.lower()
+
     if args.scale:
         model_name = '%s/anime_style_scale_%s.npz' % (model_dir, args.color)
         model_scale = srcnn.archs[args.arch](ch)
         chainer.serializers.load_npz(model_name, model_scale)
+
     if args.noise:
         model_name = '%s/anime_style_noise%d_%s.npz' % \
             (model_dir, args.noise_level, args.color)
@@ -60,37 +62,42 @@ if __name__ == '__main__':
         if args.noise:
             model_noise.to_gpu()
 
-    src = dst = Image.open(args.src)
+    src = Image.open(args.src)
     icc_profile = src.info.get('icc_profile')
-
     basename = os.path.basename(args.src)
     output, ext = os.path.splitext(basename)
-    output += '_'
-    
-    denoise_func = reconstruct.noise
-    upscale_func = reconstruct.scale
-    if args.tta:
-        denoise_func = reconstruct.noise_tta
-        upscale_func = reconstruct.scale_tta
-        output += '(tta)'
+    output += ('_(tta%d)' % args.tta_level if args.tta else '_')
 
+    dst = src.copy()
     if args.noise:
-        six.print_('Level %d denoising...' % args.noise_level, end=' ', flush=True)
-        dst = denoise_func(model_noise, dst,
-                           args.block_size, args.batch_size)
         output += '(noise%d)' % args.noise_level
+        six.print_('Level %d denoising...' % args.noise_level, end=' ', flush=True)
+        if args.tta:
+            dst = reconstruct.noise_tta(model_noise, dst, args.tta_level,
+                                        args.block_size, args.batch_size)
+        else:
+            dst = reconstruct.noise(model_noise, dst,
+                                    args.block_size, args.batch_size)
         six.print_('OK')
     if args.scale:
-        six.print_('2x upscaling...', end=' ', flush=True)
-        dst = upscale_func(model_scale, dst,
-                           args.block_size, args.batch_size)
-        output += '(scale2x)'
+        iter = 0
+        output += '(scale%.1fx)' % args.scale_factor
+        six.print_('%.1fx upscaling...' % args.scale_factor, end=' ', flush=True)
+        while iter < int(np.ceil(args.scale_factor / 2)):
+            iter += 1
+            if args.tta:
+                dst = reconstruct.scale_tta(model_scale, dst, args.tta_level,
+                                            args.block_size, args.batch_size)
+            else:
+                dst = reconstruct.scale(model_scale, dst,
+                                        args.block_size, args.batch_size)
+        if np.round(args.scale_factor % 2.0, 6) != 0:
+            dst_w = int(np.round(src.size[0] * args.scale_factor))
+            dst_h = int(np.round(src.size[1] * args.scale_factor))
+            dst = dst.resize((dst_w, dst_h), Image.ANTIALIAS)
         six.print_('OK')
 
     output += '(%s).png' % args.arch.lower()
     dst.save(output, icc_profile=icc_profile)
     six.print_('Output saved as \'%s\'' % output)
 
-    if not args.psnr == '':
-        original = iproc.read_image_rgb_uint8(args.psnr)
-        six.print_('PSNR: ' + str(iproc.psnr(original, np.array(dst), 255.)) + ' dB')

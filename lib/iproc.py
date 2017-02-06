@@ -28,7 +28,7 @@ def wand_to_array(src):
     return dst
 
 
-def jpeg(src, sampling_factor, quality):
+def jpeg(src, sampling_factor='1x1,1x1,1x1', quality=90):
     src.format = 'jpg'
     src.compression_quality = quality
     src.options['jpeg:sampling-factor'] = sampling_factor

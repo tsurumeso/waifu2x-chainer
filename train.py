@@ -2,7 +2,6 @@ from __future__ import division
 
 import os
 import six
-import math
 import copy
 import warnings
 import numpy as np
@@ -77,7 +76,7 @@ def valid_inner_epoch(model, cfg, valid_x, valid_y):
 def train():
     six.print_('* loading datalist...', end=' ')
     datalist = utils.load_datalist(args.dataset_dir)
-    valid_num = int(math.ceil(args.validation_rate * len(datalist)))
+    valid_num = int(np.ceil(args.validation_rate * len(datalist)))
     valid_list, train_list = datalist[:valid_num], datalist[valid_num:]
     six.print_('done')
 
