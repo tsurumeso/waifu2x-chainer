@@ -52,7 +52,7 @@ def blockwise(model, src, block_size, batch_size):
     return dst.transpose(1, 2, 0)
 
 
-def get_tta_patterns(src):
+def get_tta_patterns(src, n):
     src_lr = src.transpose(Image.FLIP_LEFT_RIGHT)
     patterns = [[src, None],
                [src.transpose(Image.ROTATE_90), iproc.inv(-90)],
@@ -63,11 +63,17 @@ def get_tta_patterns(src):
                [src_lr.transpose(Image.ROTATE_180), iproc.inv(-180, True)],
                [src_lr.transpose(Image.ROTATE_270), iproc.inv(-270, True)],
     ]
-    return patterns
+    if n == 2:
+        return [patterns[0], patterns[4]]
+    elif n == 4:
+        return [patterns[0], patterns[2], patterns[4], patterns[6]]
+    elif n == 8:
+        return patterns
+    return [patterns[0]]
 
 
 def scale_tta(model, src, tta_level, block_size, batch_size):
-    patterns = get_tta_patterns(src)[:tta_level]
+    patterns = get_tta_patterns(src, tta_level)
     dst = np.zeros((src.size[1] * 2, src.size[0] * 2, 3))
     if model.ch == 1:
         cbcr = np.zeros((src.size[1] * 2, src.size[0] * 2, 2))
