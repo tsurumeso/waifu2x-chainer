@@ -38,9 +38,10 @@ def _noise(src, level, chroma):
 
 def noise(src, rate, level, chroma):
     if np.random.uniform() < rate:
-        src = iproc.array_to_wand(src)
-        dst = _noise(src, level, chroma)
-        return iproc.wand_to_array(dst)
+        with iproc.array_to_wand(src) as tmp:
+            tmp = _noise(tmp, level, chroma)
+            dst = iproc.wand_to_array(tmp)
+        return dst
     else:
         return src
 
@@ -53,10 +54,11 @@ def scale(src, bmin, bmax):
     filters = ('box', 'lanczos')
     blur = np.random.uniform(bmin, bmax)
     rand = random.randint(0, len(filters)-1)
-    dst = iproc.array_to_wand(src)
-    dst.resize(w // 2, h // 2, filters[rand], blur)
-    dst.resize(w, h, 'box')
-    return iproc.wand_to_array(dst)
+    with iproc.array_to_wand(src) as tmp:
+        tmp.resize(w // 2, h // 2, filters[rand], blur)
+        tmp.resize(w, h, 'box')
+        dst = iproc.wand_to_array(tmp)
+    return dst
 
 
 def noise_scale(src, bmin, bmax, rate, level, chroma):
@@ -67,24 +69,25 @@ def noise_scale(src, bmin, bmax, rate, level, chroma):
     filters = ('box', 'lanczos')
     blur = np.random.uniform(bmin, bmax)
     rand = random.randint(0, len(filters)-1)
-    dst = array_to_wand(src)
-    dst.resize(w // 2, h // 2, filters[rand], blur)
-    if np.random.uniform() < rate:
-        dst = _noise(dst, level, chroma)
-    dst.resize(w, h, 'box')
-    return wand_to_array(dst)
+    with iproc.array_to_wand(src) as tmp:
+        tmp.resize(w // 2, h // 2, filters[rand], blur)
+        if np.random.uniform() < rate:
+            tmp = _noise(tmp, level, chroma)
+        tmp.resize(w, h, 'box')
+        dst = iproc.wand_to_array(tmp)
+    return dst
 
 
 def crop_if_large(src, max_size):
     if max_size > 0 and src.shape[1] > max_size and src.shape[0] > max_size:
         point_x = random.randint(0, src.shape[1] - max_size)
         point_y = random.randint(0, src.shape[0] - max_size)
-        return src[point_y:point_y + max_size, point_x:point_x + max_size, :]
+        dst = src[point_y:point_y + max_size, point_x:point_x + max_size, :]
+        return dst
     return src
 
 
 def preprocess(src, cfg):
-    dst = src
     dst = random_half(src, cfg.random_half_rate)
     dst = crop_if_large(dst, cfg.max_size)
     dst = random_flip(dst)
@@ -96,14 +99,14 @@ def preprocess(src, cfg):
 def active_cropping(x, y, size, p, tries):
     if np.random.uniform() < p:
         best_mse = 0
-        best_cx = np.empty((1, 1, 1))
-        best_cy = np.empty((1, 1, 1))
+        best_cx = np.zeros((size, size, x.shape[2]), dtype=np.uint8)
+        best_cy = np.zeros((size, size, y.shape[2]), dtype=np.uint8)
         for i in range(tries):
             point_x = random.randint(0, x.shape[1] - size)
             point_y = random.randint(0, x.shape[0] - size)
             crop_x = x[point_y:point_y + size, point_x:point_x + size, :]
             crop_y = y[point_y:point_y + size, point_x:point_x + size, :]
-            mse = np.mean((crop_y - crop_x) ** 2)
+            mse = np.mean(np.square(crop_y - crop_x))
             if mse >= best_mse:
                 best_mse = mse
                 best_cx = crop_x
@@ -138,10 +141,10 @@ def pairwise_transform(src, insize, cfg):
     x = x[unstable_region_offset:x.shape[0] - unstable_region_offset,
           unstable_region_offset:x.shape[1] - unstable_region_offset]
 
-    patch_x = np.ndarray((cfg.patches, cfg.ch, insize, insize),
-                         dtype=np.float32)
-    patch_y = np.ndarray((cfg.patches, cfg.ch, cfg.crop_size, cfg.crop_size),
-                         dtype=np.float32)
+    patch_x = np.zeros((cfg.patches, cfg.ch, insize, insize),
+                         dtype=np.uint8)
+    patch_y = np.zeros((cfg.patches, cfg.ch, cfg.crop_size, cfg.crop_size),
+                         dtype=np.uint8)
 
     for i in range(cfg.patches):
         crop_x, crop_y = active_cropping(x, y, insize,

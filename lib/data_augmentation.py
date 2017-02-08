@@ -10,42 +10,45 @@ from lib import iproc
 
 def random_unsharp_mask(src, p):
     if np.random.uniform() < p:
-        pil = Image.fromarray(src)
+        tmp = Image.fromarray(src)
         radius = random.randint(1, 3)
         percent = random.randint(10, 90)
         threshold = random.randint(0, 5)
         unsharp = ImageFilter.UnsharpMask(radius=radius,
                                           percent=percent,
                                           threshold=threshold)
-        dst = np.array(pil.filter(unsharp))
-        return dst.astype(np.float32)
+        dst = np.array(tmp.filter(unsharp), dtype=np.uint8)
+        return dst
     else:
         return src
 
 
 def random_flip(src):
     rand = random.randint(0, 3)
-    dst = src.copy()
-    if rand == 1:
+    dst = src
+    if rand == 0:
         dst = src[::-1, :, :]
-    elif rand == 2:
+    elif rand == 1:
         dst = src[:, ::-1, :]
-    elif rand == 3:
+    elif rand == 2:
         dst = src[::-1, ::-1, :]
     return dst
 
 
 def random_half(src, p):
-    dst = iproc.array_to_wand(src)
+    # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
+    # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
+    # 'sinc'
     if np.random.uniform() < p:
-        # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
-        # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
-        # 'sinc'
-        filter = ('box', 'box', 'blackman', 'cubic', 'lanczos')
-        h, w = src.shape[:2]
-        rand = random.randint(0, len(filter) - 1)
-        dst.resize(w // 2, h // 2, filter[rand])
-    return iproc.wand_to_array(dst)
+        with iproc.array_to_wand(src) as tmp:
+            filter = ('box', 'box', 'blackman', 'cubic', 'lanczos')
+            h, w = src.shape[:2]
+            rand = random.randint(0, len(filter) - 1)
+            tmp.resize(w // 2, h // 2, filter[rand])
+            dst = iproc.wand_to_array(tmp)
+        return dst
+    else:
+        return src
 
 
 def random_shift_1px(src):
