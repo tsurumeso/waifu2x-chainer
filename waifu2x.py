@@ -1,5 +1,6 @@
 import os
 import six
+import glob
 import argparse
 import numpy as np
 import chainer
@@ -11,10 +12,44 @@ from lib import srcnn
 from lib import reconstruct
 
 
+def denoise_image(model, src, cfg):
+    six.print_('Level %d denoising...' % cfg.noise_level, end=' ', flush=True)
+    if cfg.tta:
+        dst = reconstruct.noise_tta(model, src, tta_level,
+                                    cfg.block_size, cfg.batch_size)
+    else:
+        dst = reconstruct.noise(model, src,
+                                cfg.block_size, cfg.batch_size)
+    six.print_('OK')
+    return dst
+
+
+def upscale_image(model, src, cfg):
+    iter = 0
+    while iter < int(np.ceil(cfg.scale_factor / 2)):
+        iter += 1
+        six.print_('2.0x upscaling...', end=' ', flush=True)
+        if cfg.tta:
+            dst = reconstruct.scale_tta(model, src, cfg.tta_level,
+                                        cfg.block_size, cfg.batch_size)
+        else:
+            dst = reconstruct.scale(model, src,
+                                    cfg.block_size, cfg.batch_size)
+        six.print_('OK')
+    if np.round(cfg.scale_factor % 2.0, 6) != 0:
+        six.print_('resizing...', end=' ', flush=True)
+        dst_w = int(np.round(src.size[0] * cfg.scale_factor))
+        dst_h = int(np.round(src.size[1] * cfg.scale_factor))
+        dst = dst.resize((dst_w, dst_h), Image.ANTIALIAS)
+        six.print_('OK')
+    return dst
+
+
 p = argparse.ArgumentParser()
-p.add_argument('--gpu', type=int, default=-1)
-p.add_argument('--src', default='images/small_noisy1.jpg')
-p.add_argument('--arch',
+p.add_argument('--gpu', '-g', type=int, default=-1)
+p.add_argument('--src', '-s', default='images/small_noisy1.jpg')
+p.add_argument('--dir', '-d', default='./')
+p.add_argument('--arch', '-a',
                choices=['VGG_7l', '0',
                         'UpConv_7l', '1',
                         'SRResNet_10l', '2',
@@ -24,12 +59,12 @@ p.add_argument('--scale', action='store_true')
 p.add_argument('--scale_factor', type=float, default=2.0)
 p.add_argument('--noise', action='store_true')
 p.add_argument('--noise_level', type=int, choices=[0, 1, 2, 3], default=1)
-p.add_argument('--color', choices=['y', 'rgb'], default='rgb')
+p.add_argument('--color', '-c', choices=['y', 'rgb'], default='rgb')
 p.add_argument('--tta', action='store_true')
-p.add_argument('--tta_level', type=int, choices=[4, 8], default=8)
+p.add_argument('--tta_level', type=int, choices=[2, 4, 8], default=8)
 p.add_argument('--block_size', type=int, default=64)
 p.add_argument('--batch_size', type=int, default=8)
-p.add_argument('--test', action='store_true')
+p.add_argument('--test', '-t', action='store_true')
 
 args = p.parse_args()
 if args.arch in srcnn.table:
@@ -38,10 +73,14 @@ if args.test:
     args.scale = True
     args.noise = True
     args.noise_level = 1
+formats = ['.png', '.jpg', '.jpeg', '.bmp', '.gif']
 
 if __name__ == '__main__':
     ch = 3 if args.color == 'rgb' else 1
     model_dir = 'models/%s' % args.arch.lower()
+
+    if not os.path.exists(args.dir):
+        os.makedirs(args.dir)
 
     if args.scale:
         model_name = '%s/anime_style_scale_%s.npz' % (model_dir, args.color)
@@ -62,44 +101,30 @@ if __name__ == '__main__':
         if args.noise:
             model_noise.to_gpu()
 
-    src = Image.open(args.src)
-    icc_profile = src.info.get('icc_profile')
-    basename = os.path.basename(args.src)
-    output, ext = os.path.splitext(basename)
-    output += ('_(tta%d)' % args.tta_level if args.tta else '_')
+    if os.path.isdir(args.src):
+        args.src = args.src.replace('\\', '/')
+        filelist = glob.glob(args.src.strip('/') + '/*.*')
+    else:
+        filelist = [args.src]
 
-    dst = src.copy()
-    if args.noise:
-        output += '(noise%d)' % args.noise_level
-        six.print_('Level %d denoising...' % args.noise_level, end=' ', flush=True)
-        if args.tta:
-            dst = reconstruct.noise_tta(model_noise, dst, args.tta_level,
-                                        args.block_size, args.batch_size)
-        else:
-            dst = reconstruct.noise(model_noise, dst,
-                                    args.block_size, args.batch_size)
-        six.print_('OK')
-    if args.scale:
-        iter = 0
-        output += '(scale%.1fx)' % args.scale_factor
-        while iter < int(np.ceil(args.scale_factor / 2)):
-            iter += 1
-            six.print_('2.0x upscaling...', end=' ', flush=True)
-            if args.tta:
-                dst = reconstruct.scale_tta(model_scale, dst, args.tta_level,
-                                            args.block_size, args.batch_size)
-            else:
-                dst = reconstruct.scale(model_scale, dst,
-                                        args.block_size, args.batch_size)
-            six.print_('OK')
-        if np.round(args.scale_factor % 2.0, 6) != 0:
-            six.print_('resizing...', end=' ', flush=True)
-            dst_w = int(np.round(src.size[0] * args.scale_factor))
-            dst_h = int(np.round(src.size[1] * args.scale_factor))
-            dst = dst.resize((dst_w, dst_h), Image.ANTIALIAS)
-            six.print_('OK')
+    for path in filelist:
+        src = Image.open(path)
+        icc_profile = src.info.get('icc_profile')
+        basename = os.path.basename(path)
+        oname, ext = os.path.splitext(basename)
+        if ext.lower() in formats:
+            oname += ('_(tta%d)' % args.tta_level if args.tta else '_')
 
-    output += '(%s).png' % args.arch.lower()
-    dst.save(output, icc_profile=icc_profile)
-    six.print_('Output saved as \'%s\'' % output)
+            dst = src.copy()
+            if args.noise:
+                oname += '(noise%d)' % args.noise_level
+                dst = denoise_image(model_noise, dst, args)
+            if args.scale:
+                oname += '(scale%.1fx)' % args.scale_factor
+                dst = upscale_image(model_scale, dst, args)
+
+            oname += '(%s).png' % args.arch.lower()
+            opath = os.path.join(args.dir, oname)
+            dst.save(opath, icc_profile=icc_profile)
+            six.print_('Saved as \'%s\'' % opath)
 
