@@ -9,7 +9,7 @@ Chainer implementation of waifu2x[[1]](https://github.com/nagadomi/waifu2x) and 
 ## Requirements
 
 #### Platform
-  - Python 2.7.6+, 3.6.0+
+  - Python 2.7.6+, 3.5.1+
   
 #### Python packages
   - Chainer 1.18.0+
@@ -47,17 +47,17 @@ python waifu2x.py --test
 
 #### Noise reduction
 ```
-python waifu2x.py --noise --noise_level 1 --src <source image> --arch VGG_7l
+python waifu2x.py --noise --noise_level 1 --input <image or directory> --arch VGG_7l
 ```
 
 #### 2x upscaling
 ```
-python waifu2x.py --scale --src <source image> --arch VGG_7l
+python waifu2x.py --scale --input <image or directory> --arch VGG_7l
 ```
 
 #### Noise reduction + 2x upscaling
 ```
-python waifu2x.py --scale --noise --noise_level 1 --src <source image> --arch VGG_7l
+python waifu2x.py --scale --noise --noise_level 1 --input <image or directory> --arch VGG_7l
 ```
 
 #### Train model

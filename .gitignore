@@ -1,8 +1,4 @@
 *~
 *.pyc
-visualize.py
-residual.py
-result.png
 test/
-dataset/
 .vscode/
