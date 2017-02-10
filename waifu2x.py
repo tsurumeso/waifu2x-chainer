@@ -15,10 +15,11 @@ from lib import reconstruct
 def denoise_image(src, model, cfg):
     six.print_('Level %d denoising...' % cfg.noise_level, end=' ', flush=True)
     if cfg.tta:
-        dst = reconstruct.noise_tta(src, model, cfg.tta_level,
+        dst = reconstruct.image_tta(src, model, False,
+                                    cfg.tta_level,
                                     cfg.block_size, cfg.batch_size)
     else:
-        dst = reconstruct.noise(src, model,
+        dst = reconstruct.image(src, model, False,
                                 cfg.block_size, cfg.batch_size)
     six.print_('OK')
     return dst
@@ -30,10 +31,11 @@ def upscale_image(src, model, cfg):
         iter += 1
         six.print_('2.0x upscaling...', end=' ', flush=True)
         if cfg.tta:
-            dst = reconstruct.scale_tta(src, model, cfg.tta_level,
+            dst = reconstruct.image_tta(src, model, True,
+                                        cfg.tta_level,
                                         cfg.block_size, cfg.batch_size)
         else:
-            dst = reconstruct.scale(src, model,
+            dst = reconstruct.image(src, model, True,
                                     cfg.block_size, cfg.batch_size)
         six.print_('OK')
     if np.round(cfg.scale_factor % 2.0, 6) != 0:
@@ -47,17 +49,17 @@ def upscale_image(src, model, cfg):
 
 p = argparse.ArgumentParser()
 p.add_argument('--gpu', '-g', type=int, default=-1)
-p.add_argument('--src', '-s', default='images/small_noisy1.jpg')
-p.add_argument('--dir', '-d', default='./')
+p.add_argument('--input', '-i', default='images/small_noisy1.jpg')
+p.add_argument('--output', '-o', default='./')
 p.add_argument('--arch', '-a',
                choices=['VGG_7l', '0',
                         'UpConv_7l', '1',
                         'SRResNet_10l', '2',
                         'ResUpConv_10l', '3'],
                default='VGG_7l')
-p.add_argument('--scale', action='store_true')
+p.add_argument('--scale', '-s', action='store_true')
 p.add_argument('--scale_factor', type=float, default=2.0)
-p.add_argument('--noise', action='store_true')
+p.add_argument('--noise', '-n', action='store_true')
 p.add_argument('--noise_level', type=int, choices=[0, 1, 2, 3], default=1)
 p.add_argument('--color', '-c', choices=['y', 'rgb'], default='rgb')
 p.add_argument('--tta', action='store_true')
@@ -79,8 +81,8 @@ if __name__ == '__main__':
     ch = 3 if args.color == 'rgb' else 1
     model_dir = 'models/%s' % args.arch.lower()
 
-    if not os.path.exists(args.dir):
-        os.makedirs(args.dir)
+    if not os.path.exists(args.output):
+        os.makedirs(args.output)
 
     if args.scale:
         model_name = '%s/anime_style_scale_%s.npz' % (model_dir, args.color)
@@ -101,11 +103,11 @@ if __name__ == '__main__':
         if args.noise:
             model_noise.to_gpu()
 
-    if os.path.isdir(args.src):
-        args.src = args.src.replace('\\', '/')
-        filelist = glob.glob(args.src.strip('/') + '/*.*')
+    if os.path.isdir(args.input):
+        args.input = args.input.replace('\\', '/')
+        filelist = glob.glob(args.input.strip('/') + '/*.*')
     else:
-        filelist = [args.src]
+        filelist = [args.input]
 
     for path in filelist:
         src = Image.open(path)
@@ -124,6 +126,6 @@ if __name__ == '__main__':
                 dst = upscale_image(dst, model_scale, args)
 
             oname += '(%s).png' % args.arch.lower()
-            opath = os.path.join(args.dir, oname)
+            opath = os.path.join(args.output, oname)
             dst.save(opath, icc_profile=icc_profile)
             six.print_('Saved as \'%s\'' % opath)
