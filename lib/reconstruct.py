@@ -72,46 +72,13 @@ def get_tta_patterns(src, n):
     return [patterns[0]]
 
 
-def scale_tta(src, model, tta_level, block_size, batch_size):
-    patterns = get_tta_patterns(src, tta_level)
-    dst = np.zeros((src.size[1] * 2, src.size[0] * 2, 3))
-    if model.ch == 1:
-        cbcr = np.zeros((src.size[1] * 2, src.size[0] * 2, 2))
-        for i, (pat, inv) in enumerate(patterns):
-            six.print_(i, end=' ', flush=True)
-            pat = pat.resize((pat.size[0] * 2, pat.size[1] * 2), Image.NEAREST)
-            pat = np.array(pat.convert('YCbCr'), dtype=np.uint8)
-            if i == 0:
-                cbcr = pat[:, :, 1:]
-            tmp = blockwise(pat[:, :, 0], model, block_size, batch_size)
-            if not inv is None:
-                tmp = inv(tmp)
-            dst[:, :, 0] += tmp[:, :, 0]
-        dst /= len(patterns)
-        dst = np.clip(dst, 0, 1) * 255
-        dst[:, :, 1:] = cbcr
-        dst = dst.astype(np.uint8)
-        dst = Image.fromarray(dst, mode='YCbCr').convert('RGB')
-    elif model.ch == 3:
-        for i, (pat, inv) in enumerate(patterns):
-            six.print_(i, end=' ', flush=True)
-            pat = pat.resize((pat.size[0] * 2, pat.size[1] * 2), Image.NEAREST)
-            pat = np.array(pat.convert('RGB'), dtype=np.uint8)
-            tmp = blockwise(pat, model, block_size, batch_size)
-            if not inv is None:
-                tmp = inv(tmp)
-            dst += tmp
-        dst /= len(patterns)
-        dst = np.clip(dst, 0, 1) * 255
-        dst = Image.fromarray(dst.astype(np.uint8))
-    return dst
-
-
-def noise_tta(src, model, tta_level, block_size, batch_size):
+def image_tta(src, model, scale, tta_level, block_size, batch_size):
+    if scale:
+        src = src.resize((src.size[0] * 2, src.size[1] * 2), Image.NEAREST)
     patterns = get_tta_patterns(src, tta_level)
     dst = np.zeros((src.size[1], src.size[0], 3))
+    cbcr = np.zeros((src.size[1], src.size[0], 2))
     if model.ch == 1:
-        cbcr = np.zeros((src.size[1], src.size[0], 2))
         for i, (pat, inv) in enumerate(patterns):
             six.print_(i, end=' ', flush=True)
             pat = np.array(pat.convert('YCbCr'), dtype=np.uint8)
@@ -140,23 +107,9 @@ def noise_tta(src, model, tta_level, block_size, batch_size):
     return dst
 
 
-def scale(src, model, block_size, batch_size):
-    src = src.resize((src.size[0] * 2, src.size[1] * 2), Image.NEAREST)
-    if model.ch == 1:
-        src = np.array(src.convert('YCbCr'), dtype=np.uint8)
-        dst = blockwise(src[:, :, 0], model, block_size, batch_size)
-        dst = np.clip(dst, 0, 1) * 255
-        src[:, :, 0] = dst[:, :, 0]
-        dst = Image.fromarray(src, mode='YCbCr').convert('RGB')
-    elif model.ch == 3:
-        src = np.array(src.convert('RGB'), dtype=np.uint8)
-        dst = blockwise(src, model, block_size, batch_size)
-        dst = np.clip(dst, 0, 1) * 255
-        dst = Image.fromarray(dst.astype(np.uint8))
-    return dst
-
-
-def noise(src, model, block_size, batch_size):
+def image(src, model, scale, block_size, batch_size):
+    if scale:
+        src = src.resize((src.size[0] * 2, src.size[1] * 2), Image.NEAREST)
     if model.ch == 1:
         src = np.array(src.convert('YCbCr'), dtype=np.uint8)
         dst = blockwise(src[:, :, 0], model, block_size, batch_size)
