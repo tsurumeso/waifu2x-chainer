@@ -12,28 +12,28 @@ from lib import srcnn
 from lib import reconstruct
 
 
-def denoise_image(model, src, cfg):
+def denoise_image(src, model, cfg):
     six.print_('Level %d denoising...' % cfg.noise_level, end=' ', flush=True)
     if cfg.tta:
-        dst = reconstruct.noise_tta(model, src, tta_level,
+        dst = reconstruct.noise_tta(src, model, tta_level,
                                     cfg.block_size, cfg.batch_size)
     else:
-        dst = reconstruct.noise(model, src,
+        dst = reconstruct.noise(src, model,
                                 cfg.block_size, cfg.batch_size)
     six.print_('OK')
     return dst
 
 
-def upscale_image(model, src, cfg):
+def upscale_image(src, model, cfg):
     iter = 0
     while iter < int(np.ceil(cfg.scale_factor / 2)):
         iter += 1
         six.print_('2.0x upscaling...', end=' ', flush=True)
         if cfg.tta:
-            dst = reconstruct.scale_tta(model, src, cfg.tta_level,
+            dst = reconstruct.scale_tta(src, model, cfg.tta_level,
                                         cfg.block_size, cfg.batch_size)
         else:
-            dst = reconstruct.scale(model, src,
+            dst = reconstruct.scale(src, model,
                                     cfg.block_size, cfg.batch_size)
         six.print_('OK')
     if np.round(cfg.scale_factor % 2.0, 6) != 0:
@@ -118,13 +118,12 @@ if __name__ == '__main__':
             dst = src.copy()
             if args.noise:
                 oname += '(noise%d)' % args.noise_level
-                dst = denoise_image(model_noise, dst, args)
+                dst = denoise_image(dst, model_noise, args)
             if args.scale:
                 oname += '(scale%.1fx)' % args.scale_factor
-                dst = upscale_image(model_scale, dst, args)
+                dst = upscale_image(dst, model_scale, args)
 
             oname += '(%s).png' % args.arch.lower()
             opath = os.path.join(args.dir, oname)
             dst.save(opath, icc_profile=icc_profile)
             six.print_('Saved as \'%s\'' % opath)
-

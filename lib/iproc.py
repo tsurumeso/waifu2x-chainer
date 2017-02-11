@@ -14,6 +14,7 @@ def read_image_rgb_uint8(path):
 
 
 def array_to_wand(src):
+    assert isinstance(src, np.ndarray)
     with io.BytesIO() as buf:
         tmp = Image.fromarray(src).convert('RGB')
         tmp.save(buf, 'PNG', compress_level=0)
@@ -22,6 +23,7 @@ def array_to_wand(src):
 
 
 def wand_to_array(src):
+    assert isinstance(src, WandImage)
     with io.BytesIO(src.make_blob('PNG')) as buf:
         tmp = Image.open(buf).convert('RGB')
         dst = np.array(tmp, dtype=np.uint8)
