@@ -108,7 +108,7 @@ def scale_tta(src, model, tta_level, block_size, batch_size):
 
 
 def noise_tta(src, model, tta_level, block_size, batch_size):
-    patterns = get_tta_patterns(src)[:tta_level]
+    patterns = get_tta_patterns(src, tta_level)
     dst = np.zeros((src.size[1], src.size[0], 3))
     if model.ch == 1:
         cbcr = np.zeros((src.size[1], src.size[0], 2))

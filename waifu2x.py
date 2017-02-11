@@ -15,7 +15,7 @@ from lib import reconstruct
 def denoise_image(src, model, cfg):
     six.print_('Level %d denoising...' % cfg.noise_level, end=' ', flush=True)
     if cfg.tta:
-        dst = reconstruct.noise_tta(src, model, tta_level,
+        dst = reconstruct.noise_tta(src, model, cfg.tta_level,
                                     cfg.block_size, cfg.batch_size)
     else:
         dst = reconstruct.noise(src, model,
