@@ -62,10 +62,4 @@ if args.test:
     if not os.path.exists(args.test_dir):
         os.makedirs(args.test_dir)
 
-if args.color == 'y':
-    ch, weight = 1, (1.0)
-elif args.color == 'rgb':
-    ch, weight = 3, (0.29891 * 3, 0.58661 * 3, 0.11448 * 3)
-weight = np.array(weight, dtype=np.float32).reshape(1, ch, 1, 1)
-args.append('ch', ch)
-args.append('weight', weight)
+args.append('ch', 1 if args.color == 'y' else 3)

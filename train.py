@@ -13,32 +13,17 @@ from lib import iproc
 from lib import srcnn
 from lib import utils
 from lib.arguments import args
-from lib.pairwise_transform import pairwise_transform
+from lib.dataset_sampler import DatasetSampler
 from lib.loss.clipped_weighted_huber_loss import clipped_weighted_huber_loss
 
 
-def resampling(datalist, offset, cfg):
-    insize = cfg.crop_size + offset
-    sample_size = cfg.patches * len(datalist)
-    x = np.zeros((sample_size, cfg.ch, insize, insize),
-                 dtype=np.uint8)
-    y = np.zeros((sample_size, cfg.ch, cfg.crop_size, cfg.crop_size),
-                 dtype=np.uint8)
-
-    for i in range(len(datalist)):
-        img = iproc.read_image_rgb_uint8(datalist[i])
-        xc_batch, yc_batch = pairwise_transform(img, insize, cfg)
-        x[cfg.patches * i:cfg.patches * (i + 1)] = xc_batch[:]
-        y[cfg.patches * i:cfg.patches * (i + 1)] = yc_batch[:]
-    return x, y
-
-
-def train_inner_epoch(model, optimizer, cfg, train_x, train_y):
+def train_inner_epoch(model, weight, optimizer, data_queue, cfg):
     sum_loss = 0
     scale = 1. / 255.
     xp = utils.get_model_module(model)
+    train_x, train_y = data_queue.get()
     perm = np.random.permutation(len(train_x))
-    for i in range(0, len(train_x), cfg.batch_size):
+    for i in six.moves.range(0, len(train_x), cfg.batch_size):
         local_perm = perm[i:i + cfg.batch_size]
         batch_x = xp.array(train_x[local_perm], dtype=np.float32) * scale
         batch_y = xp.array(train_y[local_perm], dtype=np.float32) * scale
@@ -54,19 +39,20 @@ def train_inner_epoch(model, optimizer, cfg, train_x, train_y):
         optimizer.zero_grads()
         pred = model(batch_x)
         # loss = F.mean_squared_error(pred, batch_y)
-        loss = clipped_weighted_huber_loss(pred, batch_y, cfg.weight)
+        loss = clipped_weighted_huber_loss(pred, batch_y, weight)
         loss.backward()
         optimizer.update()
         sum_loss += loss.data * len(batch_x)
     return sum_loss / len(train_x)
 
 
-def valid_inner_epoch(model, cfg, valid_x, valid_y):
+def valid_inner_epoch(model, data_queue, cfg):
     sum_score = 0
     scale = 1. / 255.
     xp = utils.get_model_module(model)
+    valid_x, valid_y = data_queue.get()
     perm = np.random.permutation(len(valid_x))
-    for i in range(0, len(valid_x), cfg.batch_size):
+    for i in six.moves.range(0, len(valid_x), cfg.batch_size):
         local_perm = perm[i:i + cfg.batch_size]
         batch_x = xp.array(valid_x[local_perm], dtype=np.float32) * scale
         batch_y = xp.array(valid_y[local_perm], dtype=np.float32) * scale
@@ -86,13 +72,13 @@ def train():
     six.print_('* loading model...', end=' ', flush=True)
     if args.model_name is None:
         if args.method == 'noise':
-            model_name = 'anime_style_noise%d_%s.npz' \
-                % (args.noise_level, args.color)
+            model_name = ('anime_style_noise%d_%s.npz'
+                          % (args.noise_level, args.color))
         elif args.method == 'scale':
             model_name = 'anime_style_scale_%s.npz' % args.color
         elif args.method == 'noise_scale':
-            model_name = 'anime_style_noise%d_scale_%s.npz' \
-                % (args.noise_level, args.color)
+            model_name = ('anime_style_noise%d_scale_%s.npz'
+                          % (args.noise_level, args.color))
     else:
         model_name = args.model_name.rstrip('.npz') + '.npz'
 
@@ -100,10 +86,17 @@ def train():
     if args.finetune is not None:
         chainer.serializers.load_npz(args.finetune, model)
 
+    if args.ch == 1:
+        weight = (1.0,)
+    elif args.ch == 3:
+        weight = (0.29891 * 3, 0.58661 * 3, 0.11448 * 3)
+    weight = np.array(weight, dtype=np.float32)
+    weight = weight[:, np.newaxis, np.newaxis]
+
     if args.gpu >= 0:
         cuda.check_cuda_available()
         cuda.get_device(args.gpu).use()
-        args.weight = cuda.cupy.array(args.weight)
+        weight = cuda.cupy.array(weight)
         model.to_gpu()
 
     offset = utils.offset_size(model)
@@ -111,31 +104,34 @@ def train():
     optimizer.setup(model)
     six.print_('done')
 
+    args.append('offset', offset)
+    args.append('insize', args.crop_size + offset)
     train_config = copy.deepcopy(args)
     valid_config = copy.deepcopy(args)
 
-    six.print_('* sampling validation dataset...', end=' ', flush=True)
     valid_config.max_size = 0
     valid_config.active_cropping_rate = 1.0
     valid_config.patches = train_config.validation_crops
-    valid_x, valid_y = resampling(valid_list, offset, valid_config)
+
+    six.print_('* starting processes of dataset sampler...',
+               end=' ', flush=True)
+    valid_queue = DatasetSampler(valid_list, valid_config)
+    train_queue = DatasetSampler(train_list, train_config, repeat=True)
     six.print_('done')
 
     best_count = 0
     best_score = 0
     best_loss = np.inf
     for epoch in range(0, train_config.epoch):
+        train_queue.reload_switch()
         six.print_('### epoch: %d ###' % epoch)
-        six.print_('  * resampling train dataset...', end=' ', flush=True)
-        train_x, train_y = resampling(train_list, offset, train_config)
-        six.print_('done')
         for inner_epoch in range(0, train_config.inner_epoch):
             best_count += 1
             six.print_('  # inner epoch: %d' % inner_epoch)
-            train_loss = train_inner_epoch(model, optimizer, 
-                                           train_config, train_x, train_y)
-            valid_score = valid_inner_epoch(model, 
-                                            valid_config, valid_x, valid_y)
+            train_loss = train_inner_epoch(model, weight, optimizer,
+                                           train_queue, train_config)
+            valid_score = valid_inner_epoch(model,
+                                            valid_queue, valid_config)
             if train_loss < best_loss:
                 best_loss = train_loss
                 six.print_('    * best loss on train dataset: %f'
