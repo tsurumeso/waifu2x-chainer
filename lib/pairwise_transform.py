@@ -120,10 +120,10 @@ def active_cropping(x, y, size, p, tries):
         return crop_x, crop_y
 
 
-def pairwise_transform(src, insize, cfg):
+def pairwise_transform(src, cfg):
     unstable_region_offset = 8
-    top = (insize-cfg.crop_size) // 2
-    bottom = insize - top
+    top = cfg.offset // 2
+    bottom = cfg.insize - top
     y = preprocess(src, cfg)
 
     if cfg.method == 'scale':
@@ -141,13 +141,13 @@ def pairwise_transform(src, insize, cfg):
     x = x[unstable_region_offset:x.shape[0] - unstable_region_offset,
           unstable_region_offset:x.shape[1] - unstable_region_offset]
 
-    patch_x = np.zeros((cfg.patches, cfg.ch, insize, insize),
+    patch_x = np.zeros((cfg.patches, cfg.ch, cfg.insize, cfg.insize),
                          dtype=np.uint8)
     patch_y = np.zeros((cfg.patches, cfg.ch, cfg.crop_size, cfg.crop_size),
                          dtype=np.uint8)
 
     for i in range(cfg.patches):
-        crop_x, crop_y = active_cropping(x, y, insize,
+        crop_x, crop_y = active_cropping(x, y, cfg.insize,
                                          cfg.active_cropping_rate,
                                          cfg.active_cropping_tries)
         if cfg.ch == 1:
@@ -155,12 +155,12 @@ def pairwise_transform(src, insize, cfg):
             ycbcr_y = Image.fromarray(crop_y).convert('YCbCr')
             crop_x = np.array(ycbcr_x)[:, :, 0]
             crop_y = np.array(ycbcr_y)[top:bottom, top:bottom, 0]
-            patch_x[i] = crop_x.reshape(cfg.ch, insize, insize)
+            patch_x[i] = crop_x.reshape(cfg.ch, cfg.insize, cfg.insize)
             patch_y[i] = crop_y.reshape(cfg.ch, cfg.crop_size, cfg.crop_size)
         elif cfg.ch == 3:
             crop_y = crop_y[top:bottom, top:bottom, :]
             crop_x = crop_x.transpose(2, 0, 1)
             crop_y = crop_y.transpose(2, 0, 1)
-            patch_x[i] = crop_x.reshape(cfg.ch, insize, insize)
+            patch_x[i] = crop_x.reshape(cfg.ch, cfg.insize, cfg.insize)
             patch_y[i] = crop_y.reshape(cfg.ch, cfg.crop_size, cfg.crop_size)
     return patch_x, patch_y
