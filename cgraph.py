@@ -15,7 +15,7 @@ p.add_argument('--arch',
                default='VGG_7l')
 
 args = p.parse_args()
-if srcnn.table.has_key(args.arch):
+if args.arch in srcnn.table:
     args.arch = srcnn.table[args.arch]
 
 if __name__ == '__main__':

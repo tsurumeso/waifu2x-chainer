@@ -54,10 +54,10 @@ class DatasetSampler():
 
 def _worker(datalist, out_queue, cfg, finalized):
     sample_size = cfg.patches * len(datalist)
-    x = np.zeros((sample_size, cfg.ch, cfg.insize, cfg.insize),
-                 dtype=np.uint8)
-    y = np.zeros((sample_size, cfg.ch, cfg.crop_size, cfg.crop_size),
-                 dtype=np.uint8)
+    x = np.zeros(
+        (sample_size, cfg.ch, cfg.insize, cfg.insize), dtype=np.uint8)
+    y = np.zeros(
+        (sample_size, cfg.ch, cfg.crop_size, cfg.crop_size), dtype=np.uint8)
     for i in six.moves.range(len(datalist)):
         if finalized.is_set():
             break

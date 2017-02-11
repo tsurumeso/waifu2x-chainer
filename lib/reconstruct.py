@@ -54,14 +54,15 @@ def blockwise(src, model, block_size, batch_size):
 
 def get_tta_patterns(src, n):
     src_lr = src.transpose(Image.FLIP_LEFT_RIGHT)
-    patterns = [[src, None],
-               [src.transpose(Image.ROTATE_90), iproc.inv(-90)],
-               [src.transpose(Image.ROTATE_180), iproc.inv(-180)],
-               [src.transpose(Image.ROTATE_270), iproc.inv(-270)],
-               [src_lr, iproc.inv(0, True)],
-               [src_lr.transpose(Image.ROTATE_90), iproc.inv(-90, True)],
-               [src_lr.transpose(Image.ROTATE_180), iproc.inv(-180, True)],
-               [src_lr.transpose(Image.ROTATE_270), iproc.inv(-270, True)],
+    patterns = [
+        [src, None],
+        [src.transpose(Image.ROTATE_90), iproc.inv(-90)],
+        [src.transpose(Image.ROTATE_180), iproc.inv(-180)],
+        [src.transpose(Image.ROTATE_270), iproc.inv(-270)],
+        [src_lr, iproc.inv(0, True)],
+        [src_lr.transpose(Image.ROTATE_90), iproc.inv(-90, True)],
+        [src_lr.transpose(Image.ROTATE_180), iproc.inv(-180, True)],
+        [src_lr.transpose(Image.ROTATE_270), iproc.inv(-270, True)],
     ]
     if n == 2:
         return [patterns[0], patterns[4]]
@@ -85,7 +86,7 @@ def image_tta(src, model, scale, tta_level, block_size, batch_size):
             if i == 0:
                 cbcr = pat[:, :, 1:]
             tmp = blockwise(pat[:, :, 0], model, block_size, batch_size)
-            if not inv is None:
+            if inv is not None:
                 tmp = inv(tmp)
             dst[:, :, 0] += tmp[:, :, 0]
         dst /= len(patterns)
@@ -98,7 +99,7 @@ def image_tta(src, model, scale, tta_level, block_size, batch_size):
             six.print_(i, end=' ', flush=True)
             pat = np.array(pat.convert('RGB'), dtype=np.uint8)
             tmp = blockwise(pat, model, block_size, batch_size)
-            if not inv is None:
+            if inv is not None:
                 tmp = inv(tmp)
             dst += tmp
         dst /= len(patterns)

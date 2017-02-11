@@ -14,9 +14,8 @@ def random_unsharp_mask(src, p):
         radius = random.randint(1, 3)
         percent = random.randint(10, 90)
         threshold = random.randint(0, 5)
-        unsharp = ImageFilter.UnsharpMask(radius=radius,
-                                          percent=percent,
-                                          threshold=threshold)
+        unsharp = ImageFilter.UnsharpMask(
+            radius=radius, percent=percent, threshold=threshold)
         dst = np.array(tmp.filter(unsharp), dtype=np.uint8)
         return dst
     else:

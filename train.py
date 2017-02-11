@@ -128,10 +128,10 @@ def train():
         for inner_epoch in range(0, train_config.inner_epoch):
             best_count += 1
             six.print_('  # inner epoch: %d' % inner_epoch)
-            train_loss = train_inner_epoch(model, weight, optimizer,
-                                           train_queue, train_config)
-            valid_score = valid_inner_epoch(model,
-                                            valid_queue, valid_config)
+            train_loss = train_inner_epoch(
+                model, weight, optimizer, train_queue, train_config)
+            valid_score = valid_inner_epoch(
+                model, valid_queue, valid_config)
             if train_loss < best_loss:
                 best_loss = train_loss
                 six.print_('    * best loss on train dataset: %f'

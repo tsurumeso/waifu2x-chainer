@@ -15,12 +15,12 @@ from lib import reconstruct
 def denoise_image(src, model, cfg):
     six.print_('Level %d denoising...' % cfg.noise_level, end=' ', flush=True)
     if cfg.tta:
-        dst = reconstruct.image_tta(src, model, False,
-                                    cfg.tta_level,
-                                    cfg.block_size, cfg.batch_size)
+        dst = reconstruct.image_tta(
+            src, model, False,
+            cfg.tta_level, cfg.block_size, cfg.batch_size)
     else:
-        dst = reconstruct.image(src, model, False,
-                                cfg.block_size, cfg.batch_size)
+        dst = reconstruct.image(
+            src, model, False, cfg.block_size, cfg.batch_size)
     six.print_('OK')
     return dst
 
@@ -31,12 +31,12 @@ def upscale_image(src, model, cfg):
         iter += 1
         six.print_('2.0x upscaling...', end=' ', flush=True)
         if cfg.tta:
-            dst = reconstruct.image_tta(src, model, True,
-                                        cfg.tta_level,
-                                        cfg.block_size, cfg.batch_size)
+            dst = reconstruct.image_tta(
+                src, model, True,
+                cfg.tta_level, cfg.block_size, cfg.batch_size)
         else:
-            dst = reconstruct.image(src, model, True,
-                                    cfg.block_size, cfg.batch_size)
+            dst = reconstruct.image(
+                src, model, True, cfg.block_size, cfg.batch_size)
         six.print_('OK')
     if np.round(cfg.scale_factor % 2.0, 6) != 0:
         six.print_('resizing...', end=' ', flush=True)
@@ -90,8 +90,8 @@ if __name__ == '__main__':
         chainer.serializers.load_npz(model_name, model_scale)
 
     if args.noise:
-        model_name = '%s/anime_style_noise%d_%s.npz' % \
-            (model_dir, args.noise_level, args.color)
+        model_name = ('%s/anime_style_noise%d_%s.npz'
+                      % (model_dir, args.noise_level, args.color))
         model_noise = srcnn.archs[args.arch](ch)
         chainer.serializers.load_npz(model_name, model_noise)
 

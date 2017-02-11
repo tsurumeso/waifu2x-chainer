@@ -131,25 +131,24 @@ def pairwise_transform(src, cfg):
     elif cfg.method == 'noise':
         x = noise(y, cfg.nr_rate, cfg.noise_level, cfg.chroma_subsampling_rate)
     elif cfg.method == 'noise_scale':
-        x = noise_scale(y, cfg.resize_blur_min, cfg.resize_blur_max,
-                        cfg.nr_rate,
-                        cfg.noise_level,
-                        cfg.chroma_subsampling_rate)
+        x = noise_scale(
+            y, cfg.resize_blur_min, cfg.resize_blur_max,
+            cfg.nr_rate, cfg.noise_level, cfg.chroma_subsampling_rate)
 
     y = y[unstable_region_offset:y.shape[0] - unstable_region_offset,
           unstable_region_offset:y.shape[1] - unstable_region_offset]
     x = x[unstable_region_offset:x.shape[0] - unstable_region_offset,
           unstable_region_offset:x.shape[1] - unstable_region_offset]
 
-    patch_x = np.zeros((cfg.patches, cfg.ch, cfg.insize, cfg.insize),
-                         dtype=np.uint8)
-    patch_y = np.zeros((cfg.patches, cfg.ch, cfg.crop_size, cfg.crop_size),
-                         dtype=np.uint8)
+    patch_x = np.zeros(
+        (cfg.patches, cfg.ch, cfg.insize, cfg.insize), dtype=np.uint8)
+    patch_y = np.zeros(
+        (cfg.patches, cfg.ch, cfg.crop_size, cfg.crop_size), dtype=np.uint8)
 
     for i in range(cfg.patches):
-        crop_x, crop_y = active_cropping(x, y, cfg.insize,
-                                         cfg.active_cropping_rate,
-                                         cfg.active_cropping_tries)
+        crop_x, crop_y = active_cropping(
+            x, y, cfg.insize,
+            cfg.active_cropping_rate, cfg.active_cropping_tries)
         if cfg.ch == 1:
             ycbcr_x = Image.fromarray(crop_x).convert('YCbCr')
             ycbcr_y = Image.fromarray(crop_y).convert('YCbCr')
