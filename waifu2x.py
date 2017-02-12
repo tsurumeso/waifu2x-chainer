@@ -125,7 +125,7 @@ if __name__ == '__main__':
                 oname += '(scale%.1fx)' % args.scale_factor
                 dst = upscale_image(dst, model_scale, args)
 
-            oname += '(%s).png' % args.arch.lower()
+            oname += '(%s_%s).png' % (args.arch.lower(), args.color)
             opath = os.path.join(args.output, oname)
             dst.save(opath, icc_profile=icc_profile)
             six.print_('Saved as \'%s\'' % opath)
