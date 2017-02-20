@@ -8,6 +8,60 @@ import chainer.functions as F
 import chainer.links as L
 
 
+class Namespace():
+
+    def __init__(self, kwargs):
+        self.kwargs = kwargs
+        for key in kwargs.keys():
+            setattr(self, key, kwargs[key])
+
+    def __repr__(self):
+        str = []
+        for key in self.kwargs.keys():
+            str.append('%s: %s' % (key, self.kwargs[key]))
+        return '\n'.join(str)
+
+    def append(self, key, value):
+        self.kwargs[key] = value
+        setattr(self, key, value)
+
+
+def get_config(args, ch, offset, train=True):
+    if train:
+        max_size = args.max_size
+        patches = args.patches
+        active_cropping_rate = args.active_cropping_rate
+        active_cropping_tries = args.active_cropping_tries
+    else:
+        max_size = 0
+        patches = args.validation_crops
+        active_cropping_rate = 1.0
+        active_cropping_tries = int(args.active_cropping_rate *
+                                    args.active_cropping_tries)
+    config = {
+        'ch': ch,
+        'method': args.method,
+        'batch_size': args.batch_size,
+        'noise_level': args.noise_level,
+        'nr_rate': args.nr_rate,
+        'chroma_subsampling_rate': args.chroma_subsampling_rate,
+        'offset': offset,
+        'insize': args.crop_size + offset,
+        'crop_size': args.crop_size,
+        'max_size': max_size,
+        'active_cropping_rate': active_cropping_rate,
+        'active_cropping_tries': active_cropping_tries,
+        'random_half_rate': args.random_half_rate,
+        'random_unsharp_mask_rate': args.random_unsharp_mask_rate,
+        'patches': patches,
+        'resize_blur_min': args.resize_blur_min,
+        'resize_blur_max': args.resize_blur_max,
+        'test': args.test,
+        'test_dir': args.test_dir
+    }
+    return Namespace(config)
+
+
 def get_model_module(model):
     if isinstance(model, chainer.Chain):
         child = six.next(model.children())

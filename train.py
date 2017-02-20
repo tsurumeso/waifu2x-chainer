@@ -29,13 +29,12 @@ def train_inner_epoch(model, weight, optimizer, data_queue, cfg):
         batch_y = xp.array(train_y[local_perm], dtype=np.float32) * scale
         if cfg.test:
             for j in range(0, len(batch_x)):
-                ix = iproc.to_image(batch_x[j], cfg.ch)
-                iy = iproc.to_image(batch_y[j], cfg.ch)
+                ix = iproc.to_image(batch_x[j], cfg.ch, True)
+                iy = iproc.to_image(batch_y[j], cfg.ch, True)
                 ix.save(os.path.join(cfg.test_dir, 'test_%d_x.png' % j))
                 iy.save(os.path.join(cfg.test_dir, 'test_%d_y.png' % j))
             six.print_('    * press any key...', end=' ')
             six.moves.input()
-
         optimizer.zero_grads()
         pred = model(batch_x)
         # loss = F.mean_squared_error(pred, batch_y)
@@ -63,6 +62,15 @@ def valid_inner_epoch(model, data_queue, cfg):
 
 
 def train():
+    if args.color == 'y':
+        ch = 1
+        weight = (1.0,)
+    elif args.color == 'rgb':
+        ch = 3
+        weight = (0.29891 * 3, 0.58661 * 3, 0.11448 * 3)
+    weight = np.array(weight, dtype=np.float32)
+    weight = weight[:, np.newaxis, np.newaxis]
+
     six.print_('* loading datalist...', end=' ', flush=True)
     datalist = utils.load_datalist(args.dataset_dir)
     valid_num = int(np.ceil(args.validation_rate * len(datalist)))
@@ -82,16 +90,9 @@ def train():
     else:
         model_name = args.model_name.rstrip('.npz') + '.npz'
 
-    model = srcnn.archs[args.arch](args.ch)
+    model = srcnn.archs[args.arch](ch)
     if args.finetune is not None:
         chainer.serializers.load_npz(args.finetune, model)
-
-    if args.ch == 1:
-        weight = (1.0,)
-    elif args.ch == 3:
-        weight = (0.29891 * 3, 0.58661 * 3, 0.11448 * 3)
-    weight = np.array(weight, dtype=np.float32)
-    weight = weight[:, np.newaxis, np.newaxis]
 
     if args.gpu >= 0:
         cuda.check_cuda_available()
@@ -104,14 +105,8 @@ def train():
     optimizer.setup(model)
     six.print_('done')
 
-    args.append('offset', offset)
-    args.append('insize', args.crop_size + offset)
-    train_config = copy.deepcopy(args)
-    valid_config = copy.deepcopy(args)
-
-    valid_config.max_size = 0
-    valid_config.active_cropping_rate = 1.0
-    valid_config.patches = train_config.validation_crops
+    valid_config = utils.get_config(args, ch, offset, train=False)
+    train_config = utils.get_config(args, ch, offset, train=True)
 
     six.print_('* starting processes of dataset sampler...',
                end=' ', flush=True)
@@ -122,10 +117,10 @@ def train():
     best_count = 0
     best_score = 0
     best_loss = np.inf
-    for epoch in range(0, train_config.epoch):
+    for epoch in range(0, args.epoch):
         train_queue.reload_switch()
         six.print_('### epoch: %d ###' % epoch)
-        for inner_epoch in range(0, train_config.inner_epoch):
+        for inner_epoch in range(0, args.inner_epoch):
             best_count += 1
             six.print_('  # inner epoch: %d' % inner_epoch)
             train_loss = train_inner_epoch(
@@ -144,11 +139,11 @@ def train():
                 best_model = model.copy().to_cpu()
                 epoch_name = model_name.rstrip('.npz') + '_epoch%d.npz' % epoch
                 chainer.serializers.save_npz(epoch_name, best_model)
-            if best_count >= train_config.lr_decay_interval:
+            if best_count >= args.lr_decay_interval:
                 best_count = 0
-                optimizer.alpha *= train_config.lr_decay
-                if optimizer.alpha < train_config.lr_min:
-                    optimizer.alpha = train_config.lr_min
+                optimizer.alpha *= args.lr_decay
+                if optimizer.alpha < args.lr_min:
+                    optimizer.alpha = args.lr_min
                 else:
                     six.print_('    * learning rate decay: %f'
                                % optimizer.alpha)

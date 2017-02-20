@@ -5,16 +5,6 @@ import numpy as np
 from lib import srcnn
 
 
-class Namespace():
-
-    def __init__(self, kwargs):
-        for key in kwargs.keys():
-            setattr(self, key, kwargs[key])
-
-    def append(self, key, value):
-        setattr(self, key, value)
-
-
 p = argparse.ArgumentParser(
     description='Chainer implementation of waifu2x model trainer')
 p.add_argument('--gpu', type=int, default=-1)
@@ -54,12 +44,9 @@ p.add_argument('--model_name', default=None)
 p.add_argument('--test', action='store_true')
 p.add_argument('--test_dir', default='./test')
 
-args = Namespace(vars(p.parse_args()))
-
+args = p.parse_args()
 if args.arch in srcnn.table:
     args.arch = srcnn.table[args.arch]
 if args.test:
     if not os.path.exists(args.test_dir):
         os.makedirs(args.test_dir)
-
-args.append('ch', 1 if args.color == 'y' else 3)
