@@ -1,3 +1,4 @@
+import os
 import six
 import numpy as np
 import multiprocessing
@@ -50,6 +51,22 @@ class DatasetSampler():
             if self.repeat:
                 self._init_process()
         return self.dataset
+
+    def save_images(self, dir):
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        if self.dataset is None:
+            x, y = self.get()
+        else:
+            x, y = self.dataset
+
+        digits = int(np.log10(len(x) * 2)) + 1
+        for i, (ix, iy) in enumerate(zip(x, y)):
+            ix = iproc.to_image(ix, self.config.ch, False)
+            iy = iproc.to_image(iy, self.config.ch, False)
+            header = 'image_%s' % str(i).zfill(digits)
+            ix.save(os.path.join(dir, header + '_x.png'))
+            iy.save(os.path.join(dir, header + '_y.png'))
 
 
 def _worker(datalist, out_queue, cfg, finalized):
