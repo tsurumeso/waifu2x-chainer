@@ -44,9 +44,10 @@ def inv(rot, flip=False):
         return lambda x: np.rot90(x, rot // 90, axes=(0, 1))
 
 
-def to_image(data, ch):
+def to_image(data, ch, batch=False):
     img = cuda.to_cpu(data)
-    img = np.clip(img, 0, 1) * 255
+    if batch:
+        img = np.clip(img, 0, 1) * 255
     if ch == 1:
         return Image.fromarray(img[0].astype(np.uint8))
     elif ch == 3:
