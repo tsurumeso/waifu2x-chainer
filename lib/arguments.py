@@ -41,12 +41,7 @@ p.add_argument('--epoch', type=int, default=100)
 p.add_argument('--inner_epoch', type=int, default=4)
 p.add_argument('--finetune', default=None)
 p.add_argument('--model_name', default=None)
-p.add_argument('--test', action='store_true')
-p.add_argument('--test_dir', default='./test')
 
 args = p.parse_args()
 if args.arch in srcnn.table:
     args.arch = srcnn.table[args.arch]
-if args.test:
-    if not os.path.exists(args.test_dir):
-        os.makedirs(args.test_dir)

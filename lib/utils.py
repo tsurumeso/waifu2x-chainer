@@ -41,7 +41,6 @@ def get_config(args, ch, offset, train=True):
     config = {
         'ch': ch,
         'method': args.method,
-        'batch_size': args.batch_size,
         'noise_level': args.noise_level,
         'nr_rate': args.nr_rate,
         'chroma_subsampling_rate': args.chroma_subsampling_rate,
@@ -56,8 +55,6 @@ def get_config(args, ch, offset, train=True):
         'patches': patches,
         'resize_blur_min': args.resize_blur_min,
         'resize_blur_max': args.resize_blur_max,
-        'test': args.test,
-        'test_dir': args.test_dir
     }
     return Namespace(config)
 
