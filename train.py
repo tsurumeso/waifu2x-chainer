@@ -17,24 +17,16 @@ from lib.dataset_sampler import DatasetSampler
 from lib.loss.clipped_weighted_huber_loss import clipped_weighted_huber_loss
 
 
-def train_inner_epoch(model, weight, optimizer, data_queue, cfg):
+def train_inner_epoch(model, weight, optimizer, data_queue, batch_size):
     sum_loss = 0
     scale = 1. / 255.
     xp = utils.get_model_module(model)
     train_x, train_y = data_queue.get()
     perm = np.random.permutation(len(train_x))
-    for i in six.moves.range(0, len(train_x), cfg.batch_size):
-        local_perm = perm[i:i + cfg.batch_size]
+    for i in six.moves.range(0, len(train_x), batch_size):
+        local_perm = perm[i:i + batch_size]
         batch_x = xp.array(train_x[local_perm], dtype=np.float32) * scale
         batch_y = xp.array(train_y[local_perm], dtype=np.float32) * scale
-        if cfg.test:
-            for j in range(0, len(batch_x)):
-                ix = iproc.to_image(batch_x[j], cfg.ch, True)
-                iy = iproc.to_image(batch_y[j], cfg.ch, True)
-                ix.save(os.path.join(cfg.test_dir, 'test_%d_x.png' % j))
-                iy.save(os.path.join(cfg.test_dir, 'test_%d_y.png' % j))
-            six.print_('    * press any key...', end=' ')
-            six.moves.input()
         optimizer.zero_grads()
         pred = model(batch_x)
         # loss = F.mean_squared_error(pred, batch_y)
@@ -45,14 +37,14 @@ def train_inner_epoch(model, weight, optimizer, data_queue, cfg):
     return sum_loss / len(train_x)
 
 
-def valid_inner_epoch(model, data_queue, cfg):
+def valid_inner_epoch(model, data_queue, batch_size):
     sum_score = 0
     scale = 1. / 255.
     xp = utils.get_model_module(model)
     valid_x, valid_y = data_queue.get()
     perm = np.random.permutation(len(valid_x))
-    for i in six.moves.range(0, len(valid_x), cfg.batch_size):
-        local_perm = perm[i:i + cfg.batch_size]
+    for i in six.moves.range(0, len(valid_x), batch_size):
+        local_perm = perm[i:i + batch_size]
         batch_x = xp.array(valid_x[local_perm], dtype=np.float32) * scale
         batch_y = xp.array(valid_y[local_perm], dtype=np.float32) * scale
         pred = model(batch_x)
@@ -124,9 +116,9 @@ def train():
             best_count += 1
             six.print_('  # inner epoch: %d' % inner_epoch)
             train_loss = train_inner_epoch(
-                model, weight, optimizer, train_queue, train_config)
+                model, weight, optimizer, train_queue, args.batch_size)
             valid_score = valid_inner_epoch(
-                model, valid_queue, valid_config)
+                model, valid_queue, args.batch_size)
             if train_loss < best_loss:
                 best_loss = train_loss
                 six.print_('    * best loss on train dataset: %f'
