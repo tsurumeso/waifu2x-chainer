@@ -27,7 +27,7 @@ class DatasetSampler():
     def finalize(self):
         if self.running:
             self.finalized.set()
-            garbage = self.data_queue.get()
+            garbage = self.data_queue.get(timeout=0.5)
             self.worker.join()
             del garbage
 
@@ -39,6 +39,7 @@ class DatasetSampler():
         self.finalized = multiprocessing.Event()
         args = [self.datalist, self.data_queue, self.config, self.finalized]
         self.worker = multiprocessing.Process(target=_worker, args=args)
+        self.worker.daemon = True
         self.worker.start()
         self.running = True
 
