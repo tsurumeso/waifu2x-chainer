@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import os
 import six
+import random
 import chainer
 
 
@@ -15,8 +16,8 @@ class Namespace():
     def __repr__(self):
         str = []
         for key in self.kwargs.keys():
-            str.append('%s: %s' % (key, self.kwargs[key]))
-        return '\n'.join(str)
+            str.append('%s=%s' % (key, self.kwargs[key]))
+        return ', '.join(str)
 
     def append(self, key, value):
         self.kwargs[key] = value
@@ -31,7 +32,8 @@ def get_config(args, ch, offset, train=True):
         active_cropping_tries = args.active_cropping_tries
     else:
         max_size = 0
-        patches = args.validation_crops
+        coeff = (1 - args.validation_rate) / args.validation_rate
+        patches = int(round(args.validation_crop_rate * coeff * args.patches))
         active_cropping_rate = 1.0
         active_cropping_tries = int(args.active_cropping_rate *
                                     args.active_cropping_tries)
@@ -62,11 +64,13 @@ def get_model_module(model):
         return child.xp
 
 
-def load_datalist(dir):
+def load_datalist(dir, shuffle=False):
     files = os.listdir(dir)
     datalist = []
     for file in files:
         datalist.append(os.path.join(dir, file))
+    if shuffle:
+        random.shuffle(datalist)
     return datalist
 
 
