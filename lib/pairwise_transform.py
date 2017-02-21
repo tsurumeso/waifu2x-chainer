@@ -12,13 +12,15 @@ from lib.data_augmentation import random_unsharp_mask
 
 
 def _noise(src, level, chroma):
+    # YUV 444
     sampling_factor = '1x1,1x1,1x1'
     quality0 = random.randint(85, 100)
     quality1 = random.randint(65, 90)
     quality2 = random.randint(45, 70)
     quality3 = random.randint(25, 50)
     if np.random.uniform() < chroma:
-        sampling_factor = '2x1,1x1,1x1'
+        # YUV 420
+        sampling_factor = '2x2,1x1,1x1'
     if level == 0:
         dst = iproc.jpeg(src, sampling_factor, quality0)
     elif level == 1:
