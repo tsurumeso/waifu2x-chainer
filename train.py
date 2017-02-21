@@ -60,7 +60,7 @@ def train():
     weight = weight[:, np.newaxis, np.newaxis]
 
     six.print_('* loading datalist...', end=' ', flush=True)
-    datalist = utils.load_datalist(args.dataset_dir)
+    datalist = utils.load_datalist(args.dataset_dir, shuffle=True)
     valid_num = int(np.ceil(args.validation_rate * len(datalist)))
     valid_list, train_list = datalist[:valid_num], datalist[valid_num:]
     six.print_('done')

@@ -51,9 +51,9 @@ def noise(src, rate, level, chroma):
 def scale(src, bmin, bmax):
     # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
     # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
-    # 'sinc'
+    # 'lanczos2', 'sinc'
     h, w = src.shape[:2]
-    filters = ('box', 'lanczos')
+    filters = ('box', 'lanczos', 'lanczos2')
     blur = np.random.uniform(bmin, bmax)
     rand = random.randint(0, len(filters)-1)
     with iproc.array_to_wand(src) as tmp:
@@ -66,9 +66,9 @@ def scale(src, bmin, bmax):
 def noise_scale(src, bmin, bmax, rate, level, chroma):
     # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
     # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
-    # 'sinc'
+    # 'lanczos2', 'sinc'
     h, w = src.shape[:2]
-    filters = ('box', 'lanczos')
+    filters = ('box', 'lanczos', 'lanczos2')
     blur = np.random.uniform(bmin, bmax)
     rand = random.randint(0, len(filters)-1)
     with iproc.array_to_wand(src) as tmp:
