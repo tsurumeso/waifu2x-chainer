@@ -1,11 +1,8 @@
 from __future__ import print_function
 
 import os
-import sys
 import six
 import chainer
-import chainer.functions as F
-import chainer.links as L
 
 
 class Namespace():

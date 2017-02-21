@@ -1,8 +1,4 @@
-from __future__ import division
-
-import os
 import six
-import copy
 import warnings
 import numpy as np
 import chainer
