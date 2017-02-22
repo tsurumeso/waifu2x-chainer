@@ -1,4 +1,6 @@
+import os
 import six
+import shutil
 import warnings
 import numpy as np
 import chainer
@@ -68,15 +70,17 @@ def train():
     six.print_('* loading model...', end=' ', flush=True)
     if args.model_name is None:
         if args.method == 'noise':
-            model_name = ('anime_style_noise%d_%s.npz'
+            model_name = ('anime_style_noise%d_%s'
                           % (args.noise_level, args.color))
         elif args.method == 'scale':
-            model_name = 'anime_style_scale_%s.npz' % args.color
+            model_name = 'anime_style_scale_%s' % args.color
         elif args.method == 'noise_scale':
-            model_name = ('anime_style_noise%d_scale_%s.npz'
+            model_name = ('anime_style_noise%d_scale_%s'
                           % (args.noise_level, args.color))
     else:
-        model_name = args.model_name.rstrip('.npz') + '.npz'
+        model_name = args.model_name.rstrip('.npz')
+    if not os.path.exists("epoch"):
+        os.makedirs("epoch")
 
     model = srcnn.archs[args.arch](ch)
     if args.finetune is not None:
@@ -125,8 +129,10 @@ def train():
                 six.print_('    * best score on validation dataset: PSNR %f dB'
                            % valid_score)
                 best_model = model.copy().to_cpu()
-                epoch_name = model_name.rstrip('.npz') + '_epoch%d.npz' % epoch
-                chainer.serializers.save_npz(epoch_name, best_model)
+                model_path = '%s.npz' % model_name
+                epoch_path = 'epoch/%s_epoch%d.npz' % (model_name, epoch)
+                chainer.serializers.save_npz(model_path, best_model)
+                shutil.copy(model_path, epoch_path)
             if best_count >= args.lr_decay_interval:
                 best_count = 0
                 optimizer.alpha *= args.lr_decay
