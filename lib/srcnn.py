@@ -3,12 +3,12 @@ import chainer.links as L
 import chainer.functions as F
 
 
-class VGG_7l(chainer.Chain):
+class VGG7l(chainer.Chain):
 
     def __init__(self, ch):
         self.ch = ch
         self.offset = 14
-        super(VGG_7l, self).__init__(
+        super(VGG7l, self).__init__(
             conv0=L.Convolution2D(ch, 32, 3),
             conv1=L.Convolution2D(32, 32, 3),
             conv2=L.Convolution2D(32, 64, 3),
@@ -29,12 +29,12 @@ class VGG_7l(chainer.Chain):
         return y
 
 
-class UpConv_7l(chainer.Chain):
+class UpConv7l(chainer.Chain):
 
     def __init__(self, ch):
         self.ch = ch
         self.offset = 14
-        super(UpConv_7l, self).__init__(
+        super(UpConv7l, self).__init__(
             conv0=L.Convolution2D(ch, 64, 3),
             conv1=L.Convolution2D(64, 64, 3),
             conv2=L.Convolution2D(64, 128, 3),
@@ -79,7 +79,7 @@ class SRResBlock(chainer.Chain):
         return h + x
 
 
-class SRResNet_10l(chainer.Chain):
+class SRResNet10l(chainer.Chain):
 
     """
     Note
@@ -91,7 +91,7 @@ class SRResNet_10l(chainer.Chain):
     def __init__(self, ch):
         self.ch = ch
         self.offset = 26
-        super(SRResNet_10l, self).__init__(
+        super(SRResNet10l, self).__init__(
             conv_fe=L.Convolution2D(ch, 64, 3),
             res1=SRResBlock(64, 64),
             res2=SRResBlock(64, 64),
@@ -115,7 +115,7 @@ class SRResNet_10l(chainer.Chain):
         return h
 
 
-class ResUpConv_10l(chainer.Chain):
+class ResUpConv10l(chainer.Chain):
 
     """
     Note
@@ -127,7 +127,7 @@ class ResUpConv_10l(chainer.Chain):
     def __init__(self, ch):
         self.ch = ch
         self.offset = 26
-        super(ResUpConv_10l, self).__init__(
+        super(ResUpConv10l, self).__init__(
             conv_fe=L.Convolution2D(ch, 64, 3),
             res1=SRResBlock(64, 64),
             res2=SRResBlock(64, 96),
@@ -153,15 +153,15 @@ class ResUpConv_10l(chainer.Chain):
 
 
 archs = {
-    'VGG_7l': VGG_7l,
-    'UpConv_7l': UpConv_7l,
-    'SRResNet_10l': SRResNet_10l,
-    'ResUpConv_10l': ResUpConv_10l,
+    'VGG7l': VGG7l,
+    'UpConv7l': UpConv7l,
+    'SRResNet10l': SRResNet10l,
+    'ResUpConv10l': ResUpConv10l,
 }
 
 table = {
-    '0': 'VGG_7l',
-    '1': 'UpConv_7l',
-    '2': 'SRResNet_10l',
-    '3': 'ResUpConv_10l',
+    '0': 'VGG7l',
+    '1': 'UpConv7l',
+    '2': 'SRResNet10l',
+    '3': 'ResUpConv10l',
 }

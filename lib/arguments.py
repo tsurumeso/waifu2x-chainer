@@ -10,11 +10,11 @@ p.add_argument('--dataset_dir', required=True)
 p.add_argument('--validation_rate', type=float, default=0.05)
 p.add_argument('--color', choices=['y', 'rgb'], default='rgb')
 p.add_argument('--arch',
-               choices=['VGG_7l', '0',
-                        'UpConv_7l', '1',
-                        'SRResNet_10l', '2',
-                        'ResUpConv_10l', '3'],
-               default='VGG_7l')
+               choices=['VGG7l', '0',
+                        'UpConv7l', '1',
+                        'SRResNet10l', '2',
+                        'ResUpConv10l', '3'],
+               default='VGG7l')
 p.add_argument('--method', choices=['noise', 'scale', 'noise_scale'],
                default='scale')
 p.add_argument('--noise_level', type=int, choices=[0, 1, 2, 3], default=1)

@@ -47,17 +47,17 @@ python waifu2x.py --test
 
 #### Noise reduction
 ```
-python waifu2x.py --noise --noise_level 1 --input <image or directory> --arch VGG_7l
+python waifu2x.py --noise --noise_level 1 --input <image or directory> --arch VGG7l
 ```
 
 #### 2x upscaling
 ```
-python waifu2x.py --scale --input <image or directory> --arch VGG_7l
+python waifu2x.py --scale --input <image or directory> --arch VGG7l
 ```
 
 #### Noise reduction + 2x upscaling
 ```
-python waifu2x.py --scale --noise --noise_level 1 --input <image or directory> --arch VGG_7l
+python waifu2x.py --scale --noise --noise_level 1 --input <image or directory> --arch VGG7l
 ```
 
 #### Train model
