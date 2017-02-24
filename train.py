@@ -79,6 +79,7 @@ def train():
                           % (args.noise_level, args.color))
     else:
         model_name = args.model_name.rstrip('.npz')
+    model_path = model_name + '.npz'
     if not os.path.exists("epoch"):
         os.makedirs("epoch")
 
@@ -129,7 +130,6 @@ def train():
                 six.print_('    * best score on validation dataset: PSNR %f dB'
                            % valid_score)
                 best_model = model.copy().to_cpu()
-                model_path = '%s.npz' % model_name
                 epoch_path = 'epoch/%s_epoch%d.npz' % (model_name, epoch)
                 chainer.serializers.save_npz(model_path, best_model)
                 shutil.copy(model_path, epoch_path)
