@@ -48,31 +48,29 @@ def noise(src, rate, level, chroma):
         return src
 
 
-def scale(src, bmin, bmax):
+def scale(src, downsampling_filters, bmin, bmax):
     # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
     # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
     # 'lanczos2', 'sinc'
     h, w = src.shape[:2]
-    filters = ('box', 'lanczos', 'lanczos2')
     blur = np.random.uniform(bmin, bmax)
-    rand = random.randint(0, len(filters)-1)
+    rand = random.randint(0, len(downsampling_filters)-1)
     with iproc.array_to_wand(src) as tmp:
-        tmp.resize(w // 2, h // 2, filters[rand], blur)
+        tmp.resize(w // 2, h // 2, downsampling_filters[rand], blur)
         tmp.resize(w, h, 'box')
         dst = iproc.wand_to_array(tmp)
     return dst
 
 
-def noise_scale(src, bmin, bmax, rate, level, chroma):
+def noise_scale(src, downsampling_filters, bmin, bmax, rate, level, chroma):
     # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
     # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
     # 'lanczos2', 'sinc'
     h, w = src.shape[:2]
-    filters = ('box', 'lanczos', 'lanczos2')
     blur = np.random.uniform(bmin, bmax)
-    rand = random.randint(0, len(filters)-1)
+    rand = random.randint(0, len(downsampling_filters)-1)
     with iproc.array_to_wand(src) as tmp:
-        tmp.resize(w // 2, h // 2, filters[rand], blur)
+        tmp.resize(w // 2, h // 2, downsampling_filters[rand], blur)
         if np.random.uniform() < rate:
             tmp = _noise(tmp, level, chroma)
         tmp.resize(w, h, 'box')
@@ -129,12 +127,15 @@ def pairwise_transform(src, cfg):
     y = preprocess(src, cfg)
 
     if cfg.method == 'scale':
-        x = scale(y, cfg.resize_blur_min, cfg.resize_blur_max)
+        x = scale(
+            y, cfg.downsampling_filters,
+            cfg.resize_blur_min, cfg.resize_blur_max)
     elif cfg.method == 'noise':
         x = noise(y, cfg.nr_rate, cfg.noise_level, cfg.chroma_subsampling_rate)
     elif cfg.method == 'noise_scale':
         x = noise_scale(
-            y, cfg.resize_blur_min, cfg.resize_blur_max,
+            y, cfg.downsampling_filters,
+            cfg.resize_blur_min, cfg.resize_blur_max,
             cfg.nr_rate, cfg.noise_level, cfg.chroma_subsampling_rate)
 
     y = y[unstable_region_offset:y.shape[0] - unstable_region_offset,

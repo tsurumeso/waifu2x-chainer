@@ -52,6 +52,7 @@ def get_config(args, ch, offset, train=True):
         'random_half_rate': args.random_half_rate,
         'random_unsharp_mask_rate': args.random_unsharp_mask_rate,
         'patches': patches,
+        'downsampling_filters': args.downsampling_filters,
         'resize_blur_min': args.resize_blur_min,
         'resize_blur_max': args.resize_blur_max,
     }
