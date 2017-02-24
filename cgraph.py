@@ -8,11 +8,11 @@ from lib import srcnn
 
 p = argparse.ArgumentParser()
 p.add_argument('--arch',
-               choices=['VGG_7l', '0',
-                        'UpConv_7l', '1',
-                        'SRResNet_10l', '2',
-                        'ResUpConv_10l', '3'],
-               default='VGG_7l')
+               choices=['VGG7l', '0',
+                        'UpConv7l', '1',
+                        'SRResNet10l', '2',
+                        'ResUpConv10l', '3'],
+               default='VGG7l')
 
 args = p.parse_args()
 if args.arch in srcnn.table:
