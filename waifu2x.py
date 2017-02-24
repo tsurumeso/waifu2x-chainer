@@ -57,6 +57,7 @@ p.add_argument('--arch', '-a',
                         'SRResNet_10l', '2',
                         'ResUpConv_10l', '3'],
                default='VGG_7l')
+p.add_argument('--model_dir', '-m', default=None)
 p.add_argument('--scale', '-s', action='store_true')
 p.add_argument('--scale_factor', type=float, default=2.0)
 p.add_argument('--noise', '-n', action='store_true')
@@ -79,21 +80,25 @@ formats = ['.png', '.jpg', '.jpeg', '.bmp', '.gif']
 
 if __name__ == '__main__':
     ch = 3 if args.color == 'rgb' else 1
-    model_dir = 'models/%s' % args.arch.lower()
-
+    if args.model_dir is None:
+        model_dir = 'models/%s' % args.arch.lower()
+    else:
+        model_dir = args.model_dir
     if not os.path.exists(args.output):
         os.makedirs(args.output)
 
     if args.scale:
-        model_name = '%s/anime_style_scale_%s.npz' % (model_dir, args.color)
+        model_name = 'anime_style_scale_%s.npz' % args.color
+        model_path = os.path.join(model_dir, model_name)
         model_scale = srcnn.archs[args.arch](ch)
-        chainer.serializers.load_npz(model_name, model_scale)
+        chainer.serializers.load_npz(model_path, model_scale)
 
     if args.noise:
-        model_name = ('%s/anime_style_noise%d_%s.npz'
-                      % (model_dir, args.noise_level, args.color))
+        model_name = ('anime_style_noise%d_%s.npz'
+                      % (args.noise_level, args.color))
+        model_path = os.path.join(model_dir, model_name)
         model_noise = srcnn.archs[args.arch](ch)
-        chainer.serializers.load_npz(model_name, model_noise)
+        chainer.serializers.load_npz(model_path, model_noise)
 
     if args.gpu >= 0:
         cuda.check_cuda_available()
@@ -104,8 +109,7 @@ if __name__ == '__main__':
             model_noise.to_gpu()
 
     if os.path.isdir(args.input):
-        args.input = args.input.replace('\\', '/')
-        filelist = glob.glob(args.input.strip('/') + '/*.*')
+        filelist = glob.glob(os.path.join(args.input, '*.*'))
     else:
         filelist = [args.input]
 
@@ -125,7 +129,10 @@ if __name__ == '__main__':
                 oname += '(scale%.1fx)' % args.scale_factor
                 dst = upscale_image(dst, model_scale, args)
 
-            oname += '(%s_%s).png' % (args.arch.lower(), args.color)
+            if args.model_dir is None:
+                oname += '(%s_%s).png' % (args.arch.lower(), args.color)
+            else:
+                oname += '(model_%s).png' % args.color
             opath = os.path.join(args.output, oname)
             dst.save(opath, icc_profile=icc_profile)
             six.print_('Saved as \'%s\'' % opath)
