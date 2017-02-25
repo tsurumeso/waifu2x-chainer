@@ -80,8 +80,8 @@ def train():
     else:
         model_name = args.model_name.rstrip('.npz')
     model_path = model_name + '.npz'
-    if not os.path.exists("epoch"):
-        os.makedirs("epoch")
+    if not os.path.exists('epoch'):
+        os.makedirs('epoch')
 
     model = srcnn.archs[args.arch](ch)
     if args.finetune is not None:
