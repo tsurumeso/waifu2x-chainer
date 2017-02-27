@@ -37,6 +37,14 @@ def jpeg(src, sampling_factor='1x1,1x1,1x1', quality=90):
     return WandImage(blob=src.make_blob())
 
 
+def pcacov(x):
+    imcol = x.reshape(3, x.shape[0] * x.shape[1])
+    imcol = imcol - imcol.mean(axis=1)[:, np.newaxis]
+    cov = imcol.dot(imcol.T) / (imcol.shape[1] - 1)
+    ce, cv = np.linalg.eigh(cov)
+    return ce, cv
+
+
 def to_image(data, ch, batch=False):
     img = cuda.to_cpu(data)
     if batch:

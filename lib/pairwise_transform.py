@@ -88,6 +88,7 @@ def preprocess(src, cfg):
     dst = data_augmentation.half(src, cfg.random_half_rate)
     dst = crop_if_large(dst, cfg.max_size)
     dst = data_augmentation.flip(dst)
+    dst = data_augmentation.color_noise(dst, cfg.random_color_noise_rate)
     dst = data_augmentation.unsharp_mask(dst, cfg.random_unsharp_mask_rate)
     dst = data_augmentation.shift_1px(dst)
     return dst
