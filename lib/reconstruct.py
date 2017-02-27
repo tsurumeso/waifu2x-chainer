@@ -66,7 +66,7 @@ def get_tta_patterns(src, n):
         [src.transpose(Image.ROTATE_90), inv(-90)],
         [src.transpose(Image.ROTATE_180), inv(-180)],
         [src.transpose(Image.ROTATE_270), inv(-270)],
-        [src_lr, iproc.inv(0, True)],
+        [src_lr, inv(0, True)],
         [src_lr.transpose(Image.ROTATE_90), inv(-90, True)],
         [src_lr.transpose(Image.ROTATE_180), inv(-180, True)],
         [src_lr.transpose(Image.ROTATE_270), inv(-270, True)],
