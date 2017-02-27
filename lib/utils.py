@@ -50,6 +50,7 @@ def get_config(args, ch, offset, train=True):
         'active_cropping_rate': active_cropping_rate,
         'active_cropping_tries': active_cropping_tries,
         'random_half_rate': args.random_half_rate,
+        'random_color_noise_rate': args.random_color_noise_rate,
         'random_unsharp_mask_rate': args.random_unsharp_mask_rate,
         'patches': patches,
         'downsampling_filters': args.downsampling_filters,

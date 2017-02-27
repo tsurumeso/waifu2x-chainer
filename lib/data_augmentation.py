@@ -20,6 +20,18 @@ def unsharp_mask(src, p):
         return src
 
 
+def color_noise(src, p, factor=0.1):
+    if np.random.uniform() < p:
+        tmp = np.array(src, dtype=np.float32) / 255.
+        scale = np.random.normal(0, 0.1, 3)
+        ce, cv = iproc.pcacov(tmp)
+        noise = cv.dot(ce.T * scale)[np.newaxis, np.newaxis, :]
+        dst = np.clip(tmp + noise, 0, 1) * 255
+        return dst.astype(np.uint8)
+    else:
+        return src
+
+
 def flip(src):
     rand = random.randint(0, 3)
     dst = src
