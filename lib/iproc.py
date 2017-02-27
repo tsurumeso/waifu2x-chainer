@@ -37,13 +37,6 @@ def jpeg(src, sampling_factor='1x1,1x1,1x1', quality=90):
     return WandImage(blob=src.make_blob())
 
 
-def inv(rot, flip=False):
-    if flip:
-        return lambda x: np.rot90(x, rot // 90, axes=(0, 1))[:, ::-1, :]
-    else:
-        return lambda x: np.rot90(x, rot // 90, axes=(0, 1))
-
-
 def to_image(data, ch, batch=False):
     img = cuda.to_cpu(data)
     if batch:

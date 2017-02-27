@@ -8,21 +8,19 @@ from PIL import ImageFilter
 from lib import iproc
 
 
-def random_unsharp_mask(src, p):
+def unsharp_mask(src, p):
     if np.random.uniform() < p:
         tmp = Image.fromarray(src)
-        radius = random.randint(1, 3)
         percent = random.randint(10, 90)
         threshold = random.randint(0, 5)
-        unsharp = ImageFilter.UnsharpMask(
-            radius=radius, percent=percent, threshold=threshold)
-        dst = np.array(tmp.filter(unsharp), dtype=np.uint8)
+        mask = ImageFilter.UnsharpMask(percent=percent, threshold=threshold)
+        dst = np.array(tmp.filter(mask), dtype=np.uint8)
         return dst
     else:
         return src
 
 
-def random_flip(src):
+def flip(src):
     rand = random.randint(0, 3)
     dst = src
     if rand == 0:
@@ -34,7 +32,7 @@ def random_flip(src):
     return dst
 
 
-def random_half(src, p):
+def half(src, p):
     # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
     # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
     # 'sinc'
@@ -50,7 +48,7 @@ def random_half(src, p):
         return src
 
 
-def random_shift_1px(src):
+def shift_1px(src):
     direction = random.randint(0, 3)
     x_shift = 0
     y_shift = 0
