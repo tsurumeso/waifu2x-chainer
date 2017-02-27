@@ -52,17 +52,24 @@ def blockwise(src, model, block_size, batch_size):
     return dst.transpose(1, 2, 0)
 
 
+def inv(rot, flip=False):
+    if flip:
+        return lambda x: np.rot90(x, rot // 90, axes=(0, 1))[:, ::-1, :]
+    else:
+        return lambda x: np.rot90(x, rot // 90, axes=(0, 1))
+
+
 def get_tta_patterns(src, n):
     src_lr = src.transpose(Image.FLIP_LEFT_RIGHT)
     patterns = [
         [src, None],
-        [src.transpose(Image.ROTATE_90), iproc.inv(-90)],
-        [src.transpose(Image.ROTATE_180), iproc.inv(-180)],
-        [src.transpose(Image.ROTATE_270), iproc.inv(-270)],
+        [src.transpose(Image.ROTATE_90), inv(-90)],
+        [src.transpose(Image.ROTATE_180), inv(-180)],
+        [src.transpose(Image.ROTATE_270), inv(-270)],
         [src_lr, iproc.inv(0, True)],
-        [src_lr.transpose(Image.ROTATE_90), iproc.inv(-90, True)],
-        [src_lr.transpose(Image.ROTATE_180), iproc.inv(-180, True)],
-        [src_lr.transpose(Image.ROTATE_270), iproc.inv(-270, True)],
+        [src_lr.transpose(Image.ROTATE_90), inv(-90, True)],
+        [src_lr.transpose(Image.ROTATE_180), inv(-180, True)],
+        [src_lr.transpose(Image.ROTATE_270), inv(-270, True)],
     ]
     if n == 2:
         return [patterns[0], patterns[4]]

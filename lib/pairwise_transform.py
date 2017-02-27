@@ -5,10 +5,7 @@ import numpy as np
 from PIL import Image
 
 from lib import iproc
-from lib.data_augmentation import random_half
-from lib.data_augmentation import random_flip
-from lib.data_augmentation import random_shift_1px
-from lib.data_augmentation import random_unsharp_mask
+from lib import data_augmentation
 
 
 def _noise(src, level, chroma):
@@ -88,11 +85,11 @@ def crop_if_large(src, max_size):
 
 
 def preprocess(src, cfg):
-    dst = random_half(src, cfg.random_half_rate)
+    dst = data_augmentation.half(src, cfg.random_half_rate)
     dst = crop_if_large(dst, cfg.max_size)
-    dst = random_flip(dst)
-    dst = random_unsharp_mask(dst, cfg.random_unsharp_mask_rate)
-    dst = random_shift_1px(dst)
+    dst = data_augmentation.flip(dst)
+    dst = data_augmentation.unsharp_mask(dst, cfg.random_unsharp_mask_rate)
+    dst = data_augmentation.shift_1px(dst)
     return dst
 
 
