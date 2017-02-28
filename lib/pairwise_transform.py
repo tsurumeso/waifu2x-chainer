@@ -11,27 +11,31 @@ from lib import data_augmentation
 def _noise(src, level, chroma):
     # YUV 444
     sampling_factor = '1x1,1x1,1x1'
-    quality0 = random.randint(85, 100)
-    quality1 = random.randint(65, 90)
-    quality2 = random.randint(45, 70)
-    quality3 = random.randint(25, 50)
     if np.random.uniform() < chroma:
         # YUV 420
         sampling_factor = '2x2,1x1,1x1'
     if level == 0:
-        dst = iproc.jpeg(src, sampling_factor, quality0)
+        dst = iproc.jpeg(src, sampling_factor, random.randint(85, 100))
     elif level == 1:
-        dst = iproc.jpeg(src, sampling_factor, quality1)
-    elif level == 2:
-        if np.random.uniform() > 0.5:
-            src = iproc.jpeg(src, sampling_factor, quality1)
-        dst = iproc.jpeg(src, sampling_factor, quality2)
-    elif level == 3:
-        if np.random.uniform() > 0.5:
-            src = iproc.jpeg(src, sampling_factor, quality1)
-        if np.random.uniform() > 0.5:
-            src = iproc.jpeg(src, sampling_factor, quality2)
-        dst = iproc.jpeg(src, sampling_factor, quality3)
+        dst = iproc.jpeg(src, sampling_factor, random.randint(65, 90))
+    elif level == 2 or level == 3:
+        # for level 3, --nr_rate 1
+        rand = np.random.uniform()
+        if rand < 0.6:
+            quality = random.randint(25, 70)
+            dst = iproc.jpeg(src, sampling_factor, quality)
+        elif rand < 0.9:
+            quality0 = random.randint(35, 70)
+            quality1 = random.randint(25, 65)
+            dst = iproc.jpeg(src, sampling_factor, quality0)
+            dst = iproc.jpeg(dst, sampling_factor, quality1)
+        else:
+            quality0 = random.randint(50, 70)
+            quality1 = random.randint(35, 65)
+            quality2 = random.randint(25, 55)
+            dst = iproc.jpeg(src, sampling_factor, quality0)
+            dst = iproc.jpeg(dst, sampling_factor, quality1)
+            dst = iproc.jpeg(dst, sampling_factor, quality2)
     return dst
 
 
