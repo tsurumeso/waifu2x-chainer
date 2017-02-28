@@ -23,7 +23,7 @@ def unsharp_mask(src, p):
 def color_noise(src, p, factor=0.1):
     if np.random.uniform() < p:
         tmp = np.array(src, dtype=np.float32) / 255.
-        scale = np.random.normal(0, 0.1, 3)
+        scale = np.random.normal(0, factor, 3)
         ce, cv = iproc.pcacov(tmp)
         noise = cv.dot(ce.T * scale)[np.newaxis, np.newaxis, :]
         dst = np.clip(tmp + noise, 0, 1) * 255
@@ -61,16 +61,16 @@ def half(src, p):
 
 
 def shift_1px(src):
-    direction = random.randint(0, 3)
+    rand = random.randint(0, 3)
     x_shift = 0
     y_shift = 0
-    if direction == 0:
+    if rand == 0:
         x_shift = 1
         y_shift = 0
-    elif direction == 1:
+    elif rand == 1:
         x_shift = 0
         y_shift = 1
-    elif direction == 2:
+    elif rand == 2:
         x_shift = 1
         y_shift = 1
     w = src.shape[1] - x_shift
