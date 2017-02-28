@@ -59,15 +59,16 @@ p.add_argument('--arch', '-a',
                default='VGG7l')
 p.add_argument('--model_dir', '-m', default=None)
 p.add_argument('--scale', '-s', action='store_true')
-p.add_argument('--scale_factor', type=float, default=2.0)
+p.add_argument('--scale_factor', '-S', type=float, default=2.0)
 p.add_argument('--noise', '-n', action='store_true')
-p.add_argument('--noise_level', type=int, choices=[0, 1, 2, 3], default=1)
+p.add_argument('--noise_level', '-N', type=int, choices=[0, 1, 2, 3],
+               default=1)
 p.add_argument('--color', '-c', choices=['y', 'rgb'], default='rgb')
-p.add_argument('--tta', action='store_true')
-p.add_argument('--tta_level', type=int, choices=[2, 4, 8], default=8)
+p.add_argument('--tta', '-t', action='store_true')
+p.add_argument('--tta_level', '-T', type=int, choices=[2, 4, 8], default=8)
 p.add_argument('--block_size', type=int, default=64)
 p.add_argument('--batch_size', type=int, default=8)
-p.add_argument('--test', '-t', action='store_true')
+p.add_argument('--test', action='store_true')
 
 args = p.parse_args()
 if args.arch in srcnn.table:
