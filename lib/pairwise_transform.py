@@ -8,16 +8,18 @@ from lib import iproc
 from lib import data_augmentation
 
 
-def _noise(src, level, chroma):
+def _noise(src, p, level):
     # YUV 444
     sampling_factor = '1x1,1x1,1x1'
-    if np.random.uniform() < chroma:
+    if np.random.uniform() < p:
         # YUV 420
         sampling_factor = '2x2,1x1,1x1'
     if level == 0:
         dst = iproc.jpeg(src, sampling_factor, random.randint(85, 100))
+        return dst
     elif level == 1:
         dst = iproc.jpeg(src, sampling_factor, random.randint(65, 90))
+        return dst
     elif level == 2 or level == 3:
         # for level 3, --nr_rate 1
         rand = np.random.uniform()
@@ -36,44 +38,46 @@ def _noise(src, level, chroma):
             dst = iproc.jpeg(src, sampling_factor, quality0)
             dst = iproc.jpeg(dst, sampling_factor, quality1)
             dst = iproc.jpeg(dst, sampling_factor, quality2)
-    return dst
+        return dst
+    else:
+        raise ValueError('Unknown noise level: %d' % level)
 
 
-def noise(src, rate, level, chroma):
-    if np.random.uniform() < rate:
+def noise(src, p, p_chroma, level):
+    if np.random.uniform() < p:
         with iproc.array_to_wand(src) as tmp:
-            tmp = _noise(tmp, level, chroma)
+            tmp = _noise(tmp, p_chroma, level)
             dst = iproc.wand_to_array(tmp)
         return dst
     else:
         return src
 
 
-def scale(src, downsampling_filters, bmin, bmax):
+def scale(src, filters, bmin, bmax):
     # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
     # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
     # 'lanczos2', 'sinc'
     h, w = src.shape[:2]
     blur = np.random.uniform(bmin, bmax)
-    rand = random.randint(0, len(downsampling_filters)-1)
+    rand = random.randint(0, len(filters) - 1)
     with iproc.array_to_wand(src) as tmp:
-        tmp.resize(w // 2, h // 2, downsampling_filters[rand], blur)
+        tmp.resize(w // 2, h // 2, filters[rand], blur)
         tmp.resize(w, h, 'box')
         dst = iproc.wand_to_array(tmp)
     return dst
 
 
-def noise_scale(src, downsampling_filters, bmin, bmax, rate, level, chroma):
+def noise_scale(src, filters, bmin, bmax, p, p_chroma, level):
     # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
     # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
     # 'lanczos2', 'sinc'
     h, w = src.shape[:2]
     blur = np.random.uniform(bmin, bmax)
-    rand = random.randint(0, len(downsampling_filters)-1)
+    rand = random.randint(0, len(filters) - 1)
     with iproc.array_to_wand(src) as tmp:
-        tmp.resize(w // 2, h // 2, downsampling_filters[rand], blur)
-        if np.random.uniform() < rate:
-            tmp = _noise(tmp, level, chroma)
+        tmp.resize(w // 2, h // 2, filters[rand], blur)
+        if np.random.uniform() < p:
+            tmp = _noise(tmp, p_chroma, level)
         tmp.resize(w, h, 'box')
         dst = iproc.wand_to_array(tmp)
     return dst
@@ -133,12 +137,12 @@ def pairwise_transform(src, cfg):
             y, cfg.downsampling_filters,
             cfg.resize_blur_min, cfg.resize_blur_max)
     elif cfg.method == 'noise':
-        x = noise(y, cfg.nr_rate, cfg.noise_level, cfg.chroma_subsampling_rate)
+        x = noise(y, cfg.nr_rate, cfg.chroma_subsampling_rate, cfg.noise_level)
     elif cfg.method == 'noise_scale':
         x = noise_scale(
             y, cfg.downsampling_filters,
             cfg.resize_blur_min, cfg.resize_blur_max,
-            cfg.nr_rate, cfg.noise_level, cfg.chroma_subsampling_rate)
+            cfg.nr_rate, cfg.chroma_subsampling_rate, cfg.noise_level)
 
     y = y[unstable_region_offset:y.shape[0] - unstable_region_offset,
           unstable_region_offset:y.shape[1] - unstable_region_offset]
