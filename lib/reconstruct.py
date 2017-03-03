@@ -9,44 +9,50 @@ from lib import iproc
 from lib import utils
 
 
+def get_outer_padding(size, block_size, offset):
+    pad = size % block_size
+    if pad == 0:
+        pad = offset // 2
+    else:
+        pad = block_size - pad + offset // 2
+    return pad
+
+
 def blockwise(src, model, block_size, batch_size):
     if src.ndim == 2:
         src = src[:, :, np.newaxis]
     h, w, ch = src.shape
+    scale = 1. / 255.
     offset = utils.offset_size(model)
     xp = utils.get_model_module(model)
-    src = src.transpose(2, 0, 1) / 255.
+    ph = get_outer_padding(h, block_size, offset)
+    pw = get_outer_padding(w, block_size, offset)
+    psrc = np.pad(src, ((offset // 2, ph), (offset // 2, pw), (0, 0)), 'edge')
+    nh = (psrc.shape[0] - offset) // block_size
+    nw = (psrc.shape[1] - offset) // block_size
 
-    ph = block_size - (h % block_size) + offset // 2
-    pw = block_size - (w % block_size) + offset // 2
-    src = np.array([np.pad(x, ((offset // 2, ph), (offset // 2, pw)), 'edge')
-                    for x in src])
-    nh = src.shape[1] // block_size
-    nw = src.shape[2] // block_size
-
+    psrc = psrc.transpose(2, 0, 1)
     block_offset = block_size + offset
-    x = np.ndarray((nh * nw, ch, block_offset, block_offset), dtype=np.float32)
+    x = np.zeros((nh * nw, ch, block_offset, block_offset), dtype=np.uint8)
     for i in range(0, nh):
         ih = i * block_size
         for j in range(0, nw):
-            index = (i * nw) + j
             jw = j * block_size
-            src_ij = src[:, ih:ih + block_offset, jw:jw + block_offset]
-            x[index, :, :, :] = src_ij
+            psrc_ij = psrc[:, ih:ih + block_offset, jw:jw + block_offset]
+            x[(i * nw) + j, :, :, :] = psrc_ij
 
-    y = np.ndarray((nh * nw, ch, block_size, block_size), dtype=np.float32)
+    y = np.zeros((nh * nw, ch, block_size, block_size), dtype=np.float32)
     for i in range(0, nh * nw, batch_size):
-        x_batch = xp.array(x[i:i + batch_size])
-        output = model(x_batch)
-        y[i:i + batch_size] = cuda.to_cpu(output.data)
+        batch_x = xp.array(x[i:i + batch_size], dtype=np.float32) * scale
+        batch_y = model(batch_x)
+        y[i:i + batch_size] = cuda.to_cpu(batch_y.data)
 
-    dst = np.ndarray((ch, h + ph, w + pw), dtype=np.float32)
+    dst = np.zeros((ch, h + ph, w + pw), dtype=np.float32)
     for i in range(0, nh):
         ih = i * block_size
         for j in range(0, nw):
-            index = (i * nw) + j
             jw = j * block_size
-            dst[:, ih:ih + block_size, jw:jw + block_size] = y[index]
+            dst[:, ih:ih + block_size, jw:jw + block_size] = y[(i * nw) + j]
 
     dst = dst[:, :h, :w]
     return dst.transpose(1, 2, 0)
