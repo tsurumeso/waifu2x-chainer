@@ -28,15 +28,11 @@ def get_config(args, ch, offset, train=True):
     if train:
         max_size = args.max_size
         patches = args.patches
-        active_cropping_rate = args.active_cropping_rate
-        active_cropping_tries = args.active_cropping_tries
     else:
         max_size = 0
         coeff = (1 - args.validation_rate) / args.validation_rate
         patches = int(round(args.validation_crop_rate * coeff * args.patches))
-        active_cropping_rate = 1.0
-        active_cropping_tries = int(args.active_cropping_rate *
-                                    args.active_cropping_tries)
+
     config = {
         'ch': ch,
         'method': args.method,
@@ -47,8 +43,8 @@ def get_config(args, ch, offset, train=True):
         'insize': args.crop_size + offset,
         'crop_size': args.crop_size,
         'max_size': max_size,
-        'active_cropping_rate': active_cropping_rate,
-        'active_cropping_tries': active_cropping_tries,
+        'active_cropping_rate': args.active_cropping_rate,
+        'active_cropping_tries': args.active_cropping_tries,
         'random_half_rate': args.random_half_rate,
         'random_color_noise_rate': args.random_color_noise_rate,
         'random_unsharp_mask_rate': args.random_unsharp_mask_rate,
