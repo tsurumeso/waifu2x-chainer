@@ -26,20 +26,20 @@ def denoise_image(src, model, cfg):
 
 
 def upscale_image(src, model, cfg):
-    iter = 0
-    while iter < int(np.ceil(cfg.scale_factor / 2)):
-        iter += 1
+    dst = src
+    log_scale = np.log2(cfg.scale_factor)
+    for _ in range(int(np.ceil(log_scale))):
         six.print_('2.0x upscaling...', end=' ', flush=True)
         if cfg.tta:
             dst = reconstruct.image_tta(
-                src, model, True,
+                dst, model, True,
                 cfg.tta_level, cfg.block_size, cfg.batch_size)
         else:
             dst = reconstruct.image(
-                src, model, True, cfg.block_size, cfg.batch_size)
+                dst, model, True, cfg.block_size, cfg.batch_size)
         six.print_('OK')
-    if np.round(cfg.scale_factor % 2.0, 6) != 0:
-        six.print_('resizing...', end=' ', flush=True)
+    if np.round(log_scale % 1.0, 6) != 0:
+        six.print_('Resizing...', end=' ', flush=True)
         dst_w = int(np.round(src.size[0] * cfg.scale_factor))
         dst_h = int(np.round(src.size[1] * cfg.scale_factor))
         dst = dst.resize((dst_w, dst_h), Image.ANTIALIAS)
