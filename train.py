@@ -111,7 +111,8 @@ def train():
     best_score = 0
     best_loss = np.inf
     for epoch in range(0, args.epoch):
-        train_queue.reload_switch()
+        if epoch < args.epoch - 1:
+            train_queue.reload_switch()
         six.print_('### epoch: %d ###' % epoch)
         for inner_epoch in range(0, args.inner_epoch):
             best_count += 1
