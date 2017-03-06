@@ -35,8 +35,9 @@ class ClippedWeightedHuberLoss(function.Function):
     def backward(self, inputs, gy):
         xp = cuda.get_array_module(*inputs)
         mask = xp.abs(self.diff) <= self.delta
+        # In loss function, gy[0] is initialized to ones array
         coeff = gy[0] * gy[0].dtype.type(1. / self.diff.size)
-        gx = gy[0] * xp.where(mask, self.diff, self.delta * xp.sign(self.diff)) * coeff
+        gx = coeff * xp.where(mask, self.diff, self.delta * xp.sign(self.diff))
         return gx, -gx
 
 
