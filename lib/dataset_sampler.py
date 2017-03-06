@@ -15,9 +15,9 @@ class DatasetSampler():
         self.config = config
 
         self.worker = None
-        self.name_queue = None
-        self.finalized = None
         self.dataset = None
+        self._queue = None
+        self._finalized = None
         self._init = False
         self._reload = True
         self._running = False
@@ -29,8 +29,8 @@ class DatasetSampler():
 
     def finalize(self):
         if self._running:
-            self.finalized.set()
-            garbage = self.name_queue.get(timeout=0.5)
+            self._finalized.set()
+            garbage = self._queue.get(timeout=0.5)
             self.worker.join()
             os.remove(garbage)
 
@@ -39,9 +39,9 @@ class DatasetSampler():
         self._reload = True
 
     def _init_process(self):
-        self.name_queue = multiprocessing.Queue()
-        self.finalized = multiprocessing.Event()
-        args = [self.datalist, self.name_queue, self.config, self.finalized]
+        self._queue = multiprocessing.Queue()
+        self._finalized = multiprocessing.Event()
+        args = [self.datalist, self.config, self._queue, self._finalized]
         self.worker = multiprocessing.Process(target=_worker, args=args)
         self.worker.daemon = True
         self.worker.start()
@@ -80,7 +80,7 @@ class DatasetSampler():
             iy.save(os.path.join(dir, header + '_y.png'))
 
 
-def _worker(datalist, name_queue, cfg, finalized):
+def _worker(datalist, cfg, queue, finalized):
     sample_size = cfg.patches * len(datalist)
     x = np.zeros(
         (sample_size, cfg.ch, cfg.insize, cfg.insize), dtype=np.uint8)
@@ -97,5 +97,5 @@ def _worker(datalist, name_queue, cfg, finalized):
 
     with NamedTemporaryFile(delete=False) as cache:
         np.savez(cache, x=x, y=y)
-        name_queue.put(cache.name)
+        queue.put(cache.name)
         del x, y
