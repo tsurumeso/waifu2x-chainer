@@ -10,30 +10,33 @@ from lib.pairwise_transform import pairwise_transform
 
 class DatasetSampler():
 
-    def __init__(self, datalist, config, repeat=False):
+    def __init__(self, datalist, config):
         self.datalist = datalist
         self.config = config
-        self.repeat = repeat
+
         self.worker = None
         self.name_queue = None
         self.finalized = None
         self.dataset = None
-        self.running = False
-        self._switch = True
+        self._init = False
+        self._reload = True
+        self._running = False
+
         self._init_process()
 
     def __del__(self):
         self.finalize()
 
     def finalize(self):
-        if self.running:
+        if self._running:
             self.finalized.set()
             garbage = self.name_queue.get(timeout=0.5)
             self.worker.join()
             os.remove(garbage)
 
-    def reload_switch(self):
-        self._switch = True
+    def reload_switch(self, init=True):
+        self._init = init
+        self._reload = True
 
     def _init_process(self):
         self.name_queue = multiprocessing.Queue()
@@ -42,23 +45,21 @@ class DatasetSampler():
         self.worker = multiprocessing.Process(target=_worker, args=args)
         self.worker.daemon = True
         self.worker.start()
-        self.running = True
+        self._running = True
 
     def get(self):
-        if self.running and self._switch:
-            cache_name = self.name_queue.get()
+        if self._reload:
+            cache_name = self._queue.get()
             self.worker.join()
-            six.print_('  * loading dataset from cache...',
-                       end=' ', flush=True)
             with np.load(cache_name) as cached_arr:
                 self.dataset = cached_arr['x'], cached_arr['y']
             os.remove(cache_name)
-            six.print_('done')
+            self._running = False
 
-            self.running = False
-            self._switch = False
-            if self.repeat:
+            if self._init:
                 self._init_process()
+
+            self._reload = False
 
         return self.dataset
 
