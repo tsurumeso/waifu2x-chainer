@@ -43,4 +43,5 @@ class ClippedWeightedHuberLoss(function.Function):
 
 def clipped_weighted_huber_loss(x, t, weight, delta=0.1, clip=(0.0, 1.0)):
 
-    return ClippedWeightedHuberLoss(weight=weight, delta=delta, clip=clip)(x, t)
+    return ClippedWeightedHuberLoss(
+        weight=weight, delta=delta, clip=clip)(x, t)
