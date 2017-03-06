@@ -52,11 +52,11 @@ p.add_argument('--gpu', '-g', type=int, default=-1)
 p.add_argument('--input', '-i', default='images/small_noisy1.jpg')
 p.add_argument('--output', '-o', default='./')
 p.add_argument('--arch', '-a',
-               choices=['VGG7l', '0',
-                        'UpConv7l', '1',
-                        'SRResNet10l', '2',
-                        'ResUpConv10l', '3'],
-               default='VGG7l')
+               choices=['VGG7', '0',
+                        'UpConv7', '1',
+                        'ResNet10', '2',
+                        'ResUpConv10', '3'],
+               default='VGG7')
 p.add_argument('--model_dir', '-m', default=None)
 p.add_argument('--scale', '-s', action='store_true')
 p.add_argument('--scale_factor', '-S', type=float, default=2.0)
