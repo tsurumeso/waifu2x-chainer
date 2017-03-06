@@ -104,15 +104,14 @@ def train():
     six.print_('* starting processes of dataset sampler...',
                end=' ', flush=True)
     valid_queue = DatasetSampler(valid_list, valid_config)
-    train_queue = DatasetSampler(train_list, train_config, repeat=True)
+    train_queue = DatasetSampler(train_list, train_config)
     six.print_('done')
 
     best_count = 0
     best_score = 0
     best_loss = np.inf
     for epoch in range(0, args.epoch):
-        if epoch < args.epoch - 1:
-            train_queue.reload_switch()
+        train_queue.reload_switch(init=(epoch < args.epoch - 1))
         six.print_('### epoch: %d ###' % epoch)
         for inner_epoch in range(0, args.inner_epoch):
             best_count += 1
