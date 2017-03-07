@@ -40,6 +40,7 @@ git clone https://github.com/tsurumeso/waifu2x-chainer.git
 
 ### Testing
 ```
+cd waifu2x-chainer
 python waifu2x.py --test
 ```
 
