@@ -144,4 +144,5 @@ def train():
 
 warnings.filterwarnings('ignore')
 if __name__ == '__main__':
+    utils.set_random_seed(args.seed, args.gpu)
     train()

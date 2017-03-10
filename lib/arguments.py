@@ -6,6 +6,7 @@ from lib import srcnn
 p = argparse.ArgumentParser(
     description='Chainer implementation of waifu2x model trainer')
 p.add_argument('--gpu', type=int, default=-1)
+p.add_argument('--seed', type=int, default=11)
 p.add_argument('--dataset_dir', required=True)
 p.add_argument('--validation_rate', type=float, default=0.05)
 p.add_argument('--color', choices=['y', 'rgb'], default='rgb')
