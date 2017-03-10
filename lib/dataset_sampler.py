@@ -55,12 +55,9 @@ class DatasetSampler():
                 self.dataset = cached_arr['x'], cached_arr['y']
             os.remove(cache_name)
             self._running = False
-
             if self._init:
                 self._init_process()
-
             self._reload = False
-
         return self.dataset
 
     def save_images(self, dir):
