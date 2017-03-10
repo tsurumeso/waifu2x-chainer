@@ -3,6 +3,7 @@ from __future__ import print_function
 import os
 import six
 import random
+import numpy as np
 import chainer
 
 
@@ -60,6 +61,14 @@ def get_model_module(model):
     if isinstance(model, chainer.Chain):
         child = six.next(model.children())
         return child.xp
+
+
+def set_random_seed(seed, gpu=-1):
+    random.seed(seed)
+    np.random.seed(seed)
+    if gpu >= 0:
+        import cupy
+        cupy.random.seed(seed)
 
 
 def load_datalist(dir, shuffle=False):
