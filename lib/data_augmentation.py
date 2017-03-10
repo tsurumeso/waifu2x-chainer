@@ -1,6 +1,6 @@
 from __future__ import division
-
 import random
+
 import numpy as np
 from PIL import Image
 from PIL import ImageFilter

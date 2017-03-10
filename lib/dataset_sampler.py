@@ -1,14 +1,15 @@
-import os
-import six
-import numpy as np
 import multiprocessing
+import os
 from tempfile import NamedTemporaryFile
+
+import numpy as np
+import six
 
 from lib import iproc
 from lib.pairwise_transform import pairwise_transform
 
 
-class DatasetSampler():
+class DatasetSampler(object):
 
     def __init__(self, datalist, config):
         self.datalist = datalist

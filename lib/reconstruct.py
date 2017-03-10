@@ -1,11 +1,10 @@
 from __future__ import division
 
-import six
+from chainer import cuda
 import numpy as np
 from PIL import Image
-from chainer import cuda
+import six
 
-from lib import iproc
 from lib import utils
 
 

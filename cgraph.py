@@ -1,9 +1,10 @@
 import argparse
-import numpy as np
-import chainer.computational_graph as c
 
-from lib import utils
+import chainer.computational_graph as c
+import numpy as np
+
 from lib import srcnn
+from lib import utils
 
 
 p = argparse.ArgumentParser()
