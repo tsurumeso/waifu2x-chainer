@@ -1,8 +1,8 @@
 from __future__ import division
-
 import io
-import numpy as np
+
 from chainer import cuda
+import numpy as np
 from PIL import Image
 from wand.image import Image as WandImage
 

@@ -1,11 +1,11 @@
 from __future__ import division
-
 import random
+
 import numpy as np
 from PIL import Image
 
-from lib import iproc
 from lib import data_augmentation
+from lib import iproc
 
 
 def _noise(src, p, level):

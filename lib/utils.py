@@ -1,13 +1,13 @@
 from __future__ import print_function
-
 import os
-import six
 import random
-import numpy as np
+
 import chainer
+import numpy as np
+import six
 
 
-class Namespace():
+class Namespace(object):
 
     def __init__(self, kwargs):
         self.kwargs = kwargs

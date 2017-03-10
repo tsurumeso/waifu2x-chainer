@@ -1,6 +1,6 @@
 import chainer
-import chainer.links as L
 import chainer.functions as F
+import chainer.links as L
 
 
 class VGG7(chainer.Chain):
@@ -81,9 +81,8 @@ class ResBlock(chainer.Chain):
 
 class ResNet10(chainer.Chain):
 
-    """
-    Note
-    ----
+    """Note
+
     No batch-norm, no padding and relu to leaky_relu
 
     """
@@ -117,9 +116,8 @@ class ResNet10(chainer.Chain):
 
 class ResUpConv10(chainer.Chain):
 
-    """
-    Note
-    ----
+    """Note
+
     No batch-norm, no padding and relu to leaky_relu
 
     """

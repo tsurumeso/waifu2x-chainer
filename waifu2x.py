@@ -1,15 +1,15 @@
-import os
-import six
-import glob
 import argparse
-import numpy as np
+import glob
+import os
+
 import chainer
 from chainer import cuda
+import numpy as np
 from PIL import Image
+import six
 
-from lib import iproc
-from lib import srcnn
 from lib import reconstruct
+from lib import srcnn
 
 
 def denoise_image(src, model, cfg):

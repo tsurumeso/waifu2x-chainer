@@ -1,15 +1,17 @@
 import os
-import six
 import shutil
 import warnings
-import numpy as np
+
 import chainer
 from chainer import cuda
 from chainer import optimizers
+import numpy as np
+import six
 
 from lib import iproc
 from lib import srcnn
 from lib import utils
+
 from lib.arguments import args
 from lib.dataset_sampler import DatasetSampler
 from lib.loss.clipped_weighted_huber_loss import clipped_weighted_huber_loss
