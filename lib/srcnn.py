@@ -7,6 +7,7 @@ class VGG7(chainer.Chain):
 
     def __init__(self, ch):
         self.ch = ch
+        self.resize = False
         self.offset = 14
         super(VGG7, self).__init__(
             conv0=L.Convolution2D(ch, 32, 3),
@@ -33,15 +34,16 @@ class UpConv7(chainer.Chain):
 
     def __init__(self, ch):
         self.ch = ch
+        self.resize = True
         self.offset = 14
         super(UpConv7, self).__init__(
-            conv0=L.Convolution2D(ch, 64, 3),
-            conv1=L.Convolution2D(64, 64, 3),
-            conv2=L.Convolution2D(64, 128, 3),
-            conv3=L.Convolution2D(128, 128, 3),
+            conv0=L.Convolution2D(ch, 16, 3),
+            conv1=L.Convolution2D(16, 32, 3),
+            conv2=L.Convolution2D(32, 64, 3),
+            conv3=L.Convolution2D(64, 128, 3),
             conv4=L.Convolution2D(128, 256, 3),
             conv5=L.Convolution2D(256, 256, 3),
-            conv6=L.Convolution2D(256, ch, 3),
+            conv6=L.Deconvolution2D(256, ch, 4, 2, 3, nobias=True),
         )
 
     def __call__(self, x):
@@ -89,6 +91,7 @@ class ResNet10(chainer.Chain):
 
     def __init__(self, ch):
         self.ch = ch
+        self.resize = False
         self.offset = 26
         super(ResNet10, self).__init__(
             conv_fe=L.Convolution2D(ch, 64, 3),
@@ -124,16 +127,17 @@ class ResUpConv10(chainer.Chain):
 
     def __init__(self, ch):
         self.ch = ch
+        self.resize = True
         self.offset = 26
         super(ResUpConv10, self).__init__(
-            conv_fe=L.Convolution2D(ch, 64, 3),
-            res1=ResBlock(64, 64),
-            res2=ResBlock(64, 96),
-            res3=ResBlock(96, 96),
-            res4=ResBlock(96, 128),
+            conv_fe=L.Convolution2D(ch, 32, 3),
+            res1=ResBlock(32, 32),
+            res2=ResBlock(32, 64),
+            res3=ResBlock(64, 64),
+            res4=ResBlock(64, 128),
             res5=ResBlock(128, 128),
             conv6=L.Convolution2D(128, 128, 3),
-            conv_be=L.Convolution2D(128, ch, 3),
+            conv_be=L.Deconvolution2D(128, ch, 4, 2, 3, nobias=True),
             conv_bridge=L.Convolution2D(64, 128, 1),
         )
 
