@@ -7,8 +7,8 @@ class VGG7(chainer.Chain):
 
     def __init__(self, ch):
         self.ch = ch
-        self.resize = False
-        self.offset = 14
+        self.offset = 7
+        self.inner_scale = 1
         super(VGG7, self).__init__(
             conv0=L.Convolution2D(ch, 32, 3),
             conv1=L.Convolution2D(32, 32, 3),
@@ -34,8 +34,8 @@ class UpConv7(chainer.Chain):
 
     def __init__(self, ch):
         self.ch = ch
-        self.resize = True
         self.offset = 14
+        self.inner_scale = 2
         super(UpConv7, self).__init__(
             conv0=L.Convolution2D(ch, 16, 3),
             conv1=L.Convolution2D(16, 32, 3),
@@ -91,8 +91,8 @@ class ResNet10(chainer.Chain):
 
     def __init__(self, ch):
         self.ch = ch
-        self.resize = False
-        self.offset = 26
+        self.offset = 13
+        self.inner_scale = 1
         super(ResNet10, self).__init__(
             conv_fe=L.Convolution2D(ch, 64, 3),
             res1=ResBlock(64, 64),
@@ -127,8 +127,8 @@ class ResUpConv10(chainer.Chain):
 
     def __init__(self, ch):
         self.ch = ch
-        self.resize = True
         self.offset = 26
+        self.inner_scale = 2
         super(ResUpConv10, self).__init__(
             conv_fe=L.Convolution2D(ch, 32, 3),
             res1=ResBlock(32, 32),

@@ -49,12 +49,9 @@ def half(src, p):
     # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
     # 'sinc'
     if np.random.uniform() < p:
-        with iproc.array_to_wand(src) as tmp:
-            filter = ('box', 'box', 'blackman', 'cubic', 'lanczos')
-            h, w = src.shape[:2]
-            rand = random.randint(0, len(filter) - 1)
-            tmp.resize(w // 2, h // 2, filter[rand])
-            dst = iproc.wand_to_array(tmp)
+        filters = ('box', 'box', 'blackman', 'cubic', 'lanczos')
+        rand = random.randint(0, len(filters) - 1)
+        dst = iproc.scale(src, 0.5, filters[rand])
         return dst
     else:
         return src

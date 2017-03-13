@@ -95,13 +95,12 @@ def train():
         weight = cuda.cupy.array(weight)
         model.to_gpu()
 
-    offset = utils.offset_size(model)
     optimizer = optimizers.Adam(alpha=args.learning_rate)
     optimizer.setup(model)
     six.print_('done')
 
-    valid_config = utils.get_config(args, ch, offset, train=False)
-    train_config = utils.get_config(args, ch, offset, train=True)
+    valid_config = utils.get_config(args, model, train=False)
+    train_config = utils.get_config(args, model, train=True)
 
     six.print_('* starting processes of dataset sampler...',
                end=' ', flush=True)
