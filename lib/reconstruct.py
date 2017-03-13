@@ -11,9 +11,9 @@ from lib import utils
 def get_outer_padding(size, block_size, offset):
     pad = size % block_size
     if pad == 0:
-        pad = offset // 2
+        pad = offset
     else:
-        pad = block_size - pad + offset // 2
+        pad = block_size - pad + offset
     return pad
 
 
@@ -22,16 +22,16 @@ def blockwise(src, model, block_size, batch_size):
         src = src[:, :, np.newaxis]
     h, w, ch = src.shape
     scale = 1. / 255.
-    offset = utils.offset_size(model)
+    offset = model.offset
     xp = utils.get_model_module(model)
     ph = get_outer_padding(h, block_size, offset)
     pw = get_outer_padding(w, block_size, offset)
-    psrc = np.pad(src, ((offset // 2, ph), (offset // 2, pw), (0, 0)), 'edge')
-    nh = (psrc.shape[0] - offset) // block_size
-    nw = (psrc.shape[1] - offset) // block_size
+    psrc = np.pad(src, ((offset, ph), (offset, pw), (0, 0)), 'edge')
+    nh = (psrc.shape[0] - offset * 2) // block_size
+    nw = (psrc.shape[1] - offset * 2) // block_size
 
     psrc = psrc.transpose(2, 0, 1)
-    block_offset = block_size + offset
+    block_offset = block_size + offset * 2
     x = np.zeros((nh * nw, ch, block_offset, block_offset), dtype=np.uint8)
     for i in range(0, nh):
         ih = i * block_size

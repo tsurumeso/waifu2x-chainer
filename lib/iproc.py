@@ -30,6 +30,14 @@ def wand_to_array(src):
     return dst
 
 
+def scale(src, factor, filter='box'):
+    with array_to_wand(src) as tmp:
+        h, w = src.shape[:2]
+        tmp.resize(int(w * factor), int(h * factor), filter)
+        dst = wand_to_array(tmp)
+    return dst
+
+
 def jpeg(src, sampling_factor='1x1,1x1,1x1', quality=90):
     src.format = 'jpg'
     src.compression_quality = quality

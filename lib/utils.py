@@ -25,7 +25,13 @@ class Namespace(object):
         setattr(self, key, value)
 
 
-def get_config(args, ch, offset, train=True):
+def get_config(args, model, train=True):
+    ch = model.ch
+    offset = model.offset
+    inner_scale = model.inner_scale
+    crop_size = args.out_size + offset * 2
+    in_size = crop_size // inner_scale
+
     if train:
         max_size = args.max_size
         patches = args.patches
@@ -41,8 +47,10 @@ def get_config(args, ch, offset, train=True):
         'nr_rate': args.nr_rate,
         'chroma_subsampling_rate': args.chroma_subsampling_rate,
         'offset': offset,
-        'insize': args.crop_size + offset,
-        'crop_size': args.crop_size,
+        'crop_size': crop_size,
+        'in_size': in_size,
+        'out_size': args.out_size,
+        'inner_scale': inner_scale,
         'max_size': max_size,
         'active_cropping_rate': args.active_cropping_rate,
         'active_cropping_tries': args.active_cropping_tries,
@@ -79,17 +87,6 @@ def load_datalist(dir, shuffle=False):
     if shuffle:
         random.shuffle(datalist)
     return datalist
-
-
-def offset_size(model):
-    offset = 0
-    if hasattr(model, 'offset'):
-        offset = model.offset
-    else:
-        for child in model.children():
-            if isinstance(child, chainer.Link):
-                offset += child.W.data.shape[2] - 1
-    return offset
 
 
 def copy_model(src, dst):

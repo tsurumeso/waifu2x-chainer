@@ -81,9 +81,9 @@ class DatasetSampler(object):
 def _worker(datalist, cfg, queue, finalized):
     sample_size = cfg.patches * len(datalist)
     x = np.zeros(
-        (sample_size, cfg.ch, cfg.insize, cfg.insize), dtype=np.uint8)
+        (sample_size, cfg.ch, cfg.in_size, cfg.in_size), dtype=np.uint8)
     y = np.zeros(
-        (sample_size, cfg.ch, cfg.crop_size, cfg.crop_size), dtype=np.uint8)
+        (sample_size, cfg.ch, cfg.out_size, cfg.out_size), dtype=np.uint8)
 
     for i in six.moves.range(len(datalist)):
         if finalized.is_set():
