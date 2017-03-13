@@ -25,46 +25,6 @@ class Namespace(object):
         setattr(self, key, value)
 
 
-def get_config(args, model, train=True):
-    ch = model.ch
-    offset = model.offset
-    inner_scale = model.inner_scale
-    crop_size = args.out_size + offset * 2
-    in_size = crop_size // inner_scale
-
-    if train:
-        max_size = args.max_size
-        patches = args.patches
-    else:
-        max_size = 0
-        coeff = (1 - args.validation_rate) / args.validation_rate
-        patches = int(round(args.validation_crop_rate * coeff * args.patches))
-
-    config = {
-        'ch': ch,
-        'method': args.method,
-        'noise_level': args.noise_level,
-        'nr_rate': args.nr_rate,
-        'chroma_subsampling_rate': args.chroma_subsampling_rate,
-        'offset': offset,
-        'crop_size': crop_size,
-        'in_size': in_size,
-        'out_size': args.out_size,
-        'inner_scale': inner_scale,
-        'max_size': max_size,
-        'active_cropping_rate': args.active_cropping_rate,
-        'active_cropping_tries': args.active_cropping_tries,
-        'random_half_rate': args.random_half_rate,
-        'random_color_noise_rate': args.random_color_noise_rate,
-        'random_unsharp_mask_rate': args.random_unsharp_mask_rate,
-        'patches': patches,
-        'downsampling_filters': args.downsampling_filters,
-        'resize_blur_min': args.resize_blur_min,
-        'resize_blur_max': args.resize_blur_max,
-    }
-    return Namespace(config)
-
-
 def get_model_module(model):
     if isinstance(model, chainer.Chain):
         child = six.next(model.children())
