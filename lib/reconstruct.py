@@ -20,23 +20,30 @@ def get_outer_padding(size, block_size, offset):
 def blockwise(src, model, block_size, batch_size):
     if src.ndim == 2:
         src = src[:, :, np.newaxis]
-    h, w, ch = src.shape
     scale = 1. / 255.
-    offset = model.offset
     xp = utils.get_model_module(model)
-    ph = get_outer_padding(h, block_size, offset)
-    pw = get_outer_padding(w, block_size, offset)
-    psrc = np.pad(src, ((offset, ph), (offset, pw), (0, 0)), 'edge')
-    nh = (psrc.shape[0] - offset * 2) // block_size
-    nw = (psrc.shape[1] - offset * 2) // block_size
+    inner_scale = model.inner_scale
+    in_offset = model.offset // inner_scale
 
+    in_h, in_w, ch = src.shape
+    out_h, out_w = in_h * inner_scale, in_w * inner_scale
+    in_block_size = block_size // inner_scale
+    block_offset = in_block_size + in_offset * 2
+    in_ph = get_outer_padding(in_h, in_block_size, in_offset)
+    in_pw = get_outer_padding(in_w, in_block_size, in_offset)
+    out_ph = get_outer_padding(out_h, block_size, model.offset)
+    out_pw = get_outer_padding(out_w, block_size, model.offset)
+    psrc = np.pad(
+        src, ((in_offset, in_ph), (in_offset, in_pw), (0, 0)), 'edge')
+    nh = (psrc.shape[0] - in_offset * 2) // in_block_size
+    nw = (psrc.shape[1] - in_offset * 2) // in_block_size
     psrc = psrc.transpose(2, 0, 1)
-    block_offset = block_size + offset * 2
+
     x = np.zeros((nh * nw, ch, block_offset, block_offset), dtype=np.uint8)
     for i in range(0, nh):
-        ih = i * block_size
+        ih = i * in_block_size
         for j in range(0, nw):
-            jw = j * block_size
+            jw = j * in_block_size
             psrc_ij = psrc[:, ih:ih + block_offset, jw:jw + block_offset]
             x[(i * nw) + j, :, :, :] = psrc_ij
 
@@ -46,14 +53,14 @@ def blockwise(src, model, block_size, batch_size):
         batch_y = model(batch_x)
         y[i:i + batch_size] = cuda.to_cpu(batch_y.data)
 
-    dst = np.zeros((ch, h + ph, w + pw), dtype=np.float32)
+    dst = np.zeros((ch, out_h + out_ph, out_w + out_pw), dtype=np.float32)
     for i in range(0, nh):
         ih = i * block_size
         for j in range(0, nw):
             jw = j * block_size
             dst[:, ih:ih + block_size, jw:jw + block_size] = y[(i * nw) + j]
 
-    dst = dst[:, :h, :w]
+    dst = dst[:, :out_h, :out_w]
     return dst.transpose(1, 2, 0)
 
 
@@ -85,12 +92,11 @@ def get_tta_patterns(src, n):
     return [patterns[0]]
 
 
-def image_tta(src, model, scale, tta_level, block_size, batch_size):
-    if scale:
+def image_tta(src, model, upsampling, tta_level, block_size, batch_size):
+    dst = np.zeros((src.size[1] * 2, src.size[0] * 2, 3))
+    if upsampling:
         src = src.resize((src.size[0] * 2, src.size[1] * 2), Image.NEAREST)
     patterns = get_tta_patterns(src, tta_level)
-    dst = np.zeros((src.size[1], src.size[0], 3))
-    cbcr = np.zeros((src.size[1], src.size[0], 2))
     if model.ch == 1:
         for i, (pat, inv) in enumerate(patterns):
             six.print_(i, end=' ', flush=True)
@@ -120,8 +126,8 @@ def image_tta(src, model, scale, tta_level, block_size, batch_size):
     return dst
 
 
-def image(src, model, scale, block_size, batch_size):
-    if scale:
+def image(src, model, upsampling, block_size, batch_size):
+    if upsampling:
         src = src.resize((src.size[0] * 2, src.size[1] * 2), Image.NEAREST)
     if model.ch == 1:
         src = np.array(src.convert('YCbCr'), dtype=np.uint8)
