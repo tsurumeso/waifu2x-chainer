@@ -41,34 +41,34 @@ git clone https://github.com/tsurumeso/waifu2x-chainer.git
 ### Testing
 ```
 cd waifu2x-chainer
-python waifu2x.py --test
+python waifu2x.py
 ```
 
 ## Usage
 
 ### Noise reduction
 ```
-python waifu2x.py --noise --noise_level 1 --input <image or directory> --arch VGG7
+python waifu2x.py --method noise --noise_level 1 --input <image or directory> --arch VGG7
 
-python waifu2x.py -n -N 0 -i <image or directory> -a 0
-python waifu2x.py -n -N 2 -i <image or directory> -a 0
-python waifu2x.py -n -N 3 -i <image or directory> -a 0
+python waifu2x.py -m noise -n 0 -i <image or directory> -a 0
+python waifu2x.py -m noise -n 2 -i <image or directory> -a 0
+python waifu2x.py -m noise -n 3 -i <image or directory> -a 0
 ```
 
 ### 2x upscaling
 ```
-python waifu2x.py --scale --input <image or directory> --arch VGG7
+python waifu2x.py --method scale --input <image or directory> --arch VGG7
 
-python waifu2x.py -s -i <image or directory> -a 0
+python waifu2x.py -m scale -i <image or directory> -a 0
 ```
 
 ### Noise reduction + 2x upscaling
 ```
-python waifu2x.py --noise --noise_level 1 --scale --input <image or directory> --arch VGG7
+python waifu2x.py --method noise_scale --noise_level 1 --input <image or directory> --arch VGG7
 
-python waifu2x.py -n -N 0 -s -i <image or directory> -a 0
-python waifu2x.py -n -N 2 -s -i <image or directory> -a 0
-python waifu2x.py -n -N 3 -s -i <image or directory> -a 0
+python waifu2x.py -m noise_scale -n 0 -i <image or directory> -a 0
+python waifu2x.py -m noise_scale -n 2 -i <image or directory> -a 0
+python waifu2x.py -m noise_scale -n 3 -i <image or directory> -a 0
 ```
 
 ### Train your own model
