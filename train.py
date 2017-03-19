@@ -13,9 +13,9 @@ from lib import iproc
 from lib import srcnn
 from lib import utils
 
-from lib.arguments import args
 from lib.dataset_sampler import DatasetSampler
 from lib.loss.clipped_weighted_huber_loss import clipped_weighted_huber_loss
+from lib.settings import args
 
 
 def train_inner_epoch(model, weight, optimizer, data_queue, batch_size):
