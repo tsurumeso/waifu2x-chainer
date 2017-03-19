@@ -24,20 +24,14 @@ def _noise(src, p, level):
         # for level 3, --nr_rate 1
         rand = np.random.uniform()
         if rand < 0.6:
-            quality = random.randint(25, 70)
-            dst = iproc.jpeg(src, sampling_factor, quality)
+            dst = iproc.jpeg(src, sampling_factor, random.randint(25, 70))
         elif rand < 0.9:
-            quality0 = random.randint(35, 70)
-            quality1 = random.randint(25, 65)
-            dst = iproc.jpeg(src, sampling_factor, quality0)
-            dst = iproc.jpeg(dst, sampling_factor, quality1)
+            dst = iproc.jpeg(src, sampling_factor, random.randint(35, 70))
+            dst = iproc.jpeg(dst, sampling_factor, random.randint(25, 65))
         else:
-            quality0 = random.randint(50, 70)
-            quality1 = random.randint(35, 65)
-            quality2 = random.randint(25, 55)
-            dst = iproc.jpeg(src, sampling_factor, quality0)
-            dst = iproc.jpeg(dst, sampling_factor, quality1)
-            dst = iproc.jpeg(dst, sampling_factor, quality2)
+            dst = iproc.jpeg(src, sampling_factor, random.randint(50, 70))
+            dst = iproc.jpeg(dst, sampling_factor, random.randint(35, 65))
+            dst = iproc.jpeg(dst, sampling_factor, random.randint(25, 55))
         return dst
     else:
         raise ValueError('Unknown noise level: %d' % level)
