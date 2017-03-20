@@ -18,7 +18,7 @@ def denoise_image(src, model, cfg):
         dst = reconstruct.image_tta(
             src, model, False, cfg.tta_level, cfg.block_size, cfg.batch_size)
     else:
-        dst = reconstruct.image(src, model, cfg.block_size, cfg.batch_size)
+        dst = reconstruct.image(src, model, False, cfg.block_size, cfg.batch_size)
     six.print_('OK')
     return dst
 
@@ -33,7 +33,7 @@ def upscale_image(src, model, cfg):
                 dst, model, True,
                 cfg.tta_level, cfg.block_size, cfg.batch_size)
         else:
-            dst = reconstruct.image(dst, model, cfg.block_size, cfg.batch_size)
+            dst = reconstruct.image(dst, model, True, cfg.block_size, cfg.batch_size)
         six.print_('OK')
     if np.round(log_scale % 1.0, 6) != 0:
         six.print_('Resizing...', end=' ', flush=True)
