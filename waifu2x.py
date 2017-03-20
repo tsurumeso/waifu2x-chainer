@@ -16,24 +16,25 @@ def denoise_image(src, model, cfg):
     six.print_('Level %d denoising...' % cfg.noise_level, end=' ', flush=True)
     if cfg.tta:
         dst = reconstruct.image_tta(
-            src, model, False, cfg.tta_level, cfg.block_size, cfg.batch_size)
+            src, model, cfg.tta_level, cfg.block_size, cfg.batch_size)
     else:
-        dst = reconstruct.image(src, model, False, cfg.block_size, cfg.batch_size)
+        dst = reconstruct.image(src, model, cfg.block_size, cfg.batch_size)
     six.print_('OK')
     return dst
 
 
 def upscale_image(src, model, cfg):
     dst = src
+    if model.inner_scale == 1:
+        dst = src.resize((src.size[0] * 2, src.size[1] * 2), Image.NEAREST)
     log_scale = np.log2(cfg.scale_factor)
     for _ in range(int(np.ceil(log_scale))):
         six.print_('2.0x upscaling...', end=' ', flush=True)
         if cfg.tta:
             dst = reconstruct.image_tta(
-                dst, model, True,
-                cfg.tta_level, cfg.block_size, cfg.batch_size)
+                dst, model, cfg.tta_level, cfg.block_size, cfg.batch_size)
         else:
-            dst = reconstruct.image(dst, model, True, cfg.block_size, cfg.batch_size)
+            dst = reconstruct.image(dst, model, cfg.block_size, cfg.batch_size)
         six.print_('OK')
     if np.round(log_scale % 1.0, 6) != 0:
         six.print_('Resizing...', end=' ', flush=True)

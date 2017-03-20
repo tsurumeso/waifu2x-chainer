@@ -92,13 +92,9 @@ def get_tta_patterns(src, n):
     return [patterns[0]]
 
 
-def image_tta(src, model, scale, tta_level, block_size, batch_size):
-    if scale:
-        dst = np.zeros((src.size[1] * 2, src.size[0] * 2, 3))
-        if model.inner_scale == 1:
-            src = src.resize((src.size[0] * 2, src.size[1] * 2), Image.NEAREST)
-    else:
-        dst = np.zeros_like(src, dtype=np.float32)
+def image_tta(src, model, tta_level, block_size, batch_size):
+    inner_scale = model.inner_scale
+    dst = np.zeros((src.size[1] * inner_scale, src.size[0] * inner_scale, 3))
     patterns = get_tta_patterns(src, tta_level)
     if model.ch == 1:
         for i, (pat, inv) in enumerate(patterns):
@@ -129,9 +125,7 @@ def image_tta(src, model, scale, tta_level, block_size, batch_size):
     return dst
 
 
-def image(src, model, scale, block_size, batch_size):
-    if scale and model.inner_scale == 1:
-        src = src.resize((src.size[0] * 2, src.size[1] * 2), Image.NEAREST)
+def image(src, model, block_size, batch_size):
     if model.ch == 1:
         src = np.array(src.convert('YCbCr'), dtype=np.uint8)
         dst = blockwise(src[:, :, 0], model, block_size, batch_size)
