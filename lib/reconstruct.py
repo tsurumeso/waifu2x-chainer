@@ -129,8 +129,8 @@ def image_tta(src, model, scale, tta_level, block_size, batch_size):
     return dst
 
 
-def image(src, model, block_size, batch_size):
-    if model.inner_scale == 1:
+def image(src, model, scale, block_size, batch_size):
+    if scale and model.inner_scale == 1:
         src = src.resize((src.size[0] * 2, src.size[1] * 2), Image.NEAREST)
     if model.ch == 1:
         src = np.array(src.convert('YCbCr'), dtype=np.uint8)
