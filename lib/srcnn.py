@@ -138,7 +138,7 @@ class ResUpConv10(chainer.Chain):
             res5=ResBlock(128, 128),
             conv6=L.Convolution2D(128, 128, 3),
             conv_be=L.Deconvolution2D(128, ch, 4, 2, 3, nobias=True),
-            conv_bridge=L.Convolution2D(64, 128, 1),
+            conv_bridge=L.Convolution2D(32, 128, 1),
         )
 
     def __call__(self, x):
