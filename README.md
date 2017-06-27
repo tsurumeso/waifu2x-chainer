@@ -14,7 +14,7 @@ Chainer implementation of waifu2x[[1]](https://github.com/nagadomi/waifu2x) and 
 ### Python packages
   - Chainer
   - Pillow
-  - Wand (using MagickWand library)
+  - Wand (MagickWand library required)
 
 ## Installation
 
