@@ -28,7 +28,7 @@ def train_inner_epoch(model, weight, optimizer, data_queue, batch_size):
         local_perm = perm[i:i + batch_size]
         batch_x = xp.array(train_x[local_perm], dtype=np.float32) * scale
         batch_y = xp.array(train_y[local_perm], dtype=np.float32) * scale
-        optimizer.zero_grads()
+        model.cleargrads()
         pred = model(batch_x)
         # loss = F.mean_squared_error(pred, batch_y)
         loss = clipped_weighted_huber_loss(pred, batch_y, weight)
