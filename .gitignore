@@ -1,4 +1,5 @@
 *~
 *.pyc
+/*.bat
 epoch/
 .vscode/
