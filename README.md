@@ -13,6 +13,7 @@ Chainer implementation of waifu2x[[1]](https://github.com/nagadomi/waifu2x) and 
 
 ### Python packages
   - Chainer
+  - Cupy
   - Pillow
   - Wand (MagickWand library required)
 
@@ -21,6 +22,7 @@ Chainer implementation of waifu2x[[1]](https://github.com/nagadomi/waifu2x) and 
 ### Install Python packages
 ```
 pip install chainer
+pip install cupy
 pip install pillow
 pip install wand
 ```
