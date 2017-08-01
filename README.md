@@ -13,7 +13,7 @@ Chainer implementation of waifu2x[[1]](https://github.com/nagadomi/waifu2x) and 
 
 ### Python packages
   - Chainer
-  - Cupy
+  - Cupy (Optional, CUDA library required)
   - Pillow
   - Wand (MagickWand library required)
 
@@ -25,11 +25,6 @@ pip install chainer
 pip install cupy
 pip install pillow
 pip install wand
-```
-
-### Install additional dependencies
-```
-sudo apt-get install ImageMagick
 ```
 
 ### Getting waifu2x-chainer
