@@ -1,5 +1,7 @@
 *~
 *.pyc
 /*.bat
+/*.sh
+/*.npz
 epoch/
 .vscode/
