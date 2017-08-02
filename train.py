@@ -170,7 +170,7 @@ def train():
                 best_count = 0
                 best_score = valid_score
                 print('    * best score on validation dataset: PSNR %f dB'
-                       % valid_score)
+                      % valid_score)
                 best_model = model.copy().to_cpu()
                 epoch_path = 'epoch/%s_epoch%d.npz' % (model_name, epoch)
                 chainer.serializers.save_npz(model_path, best_model)
