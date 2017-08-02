@@ -161,11 +161,12 @@ def train():
             print('  # inner epoch: %d' % inner_epoch)
             train_loss = train_inner_epoch(
                 model, weight, optimizer, train_queue, args.batch_size)
-            valid_score = valid_inner_epoch(
-                model, valid_queue, args.batch_size)
+            train_queue.wait()
             if train_loss < best_loss:
                 best_loss = train_loss
                 print('    * best loss on train dataset: %f' % train_loss)
+            valid_score = valid_inner_epoch(
+                model, valid_queue, args.batch_size)
             if valid_score > best_score:
                 best_count = 0
                 best_score = valid_score
