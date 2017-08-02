@@ -17,6 +17,7 @@ class DatasetSampler(object):
 
         self.worker = None
         self.dataset = None
+        self.cache_name = None
         self._queue = None
         self._finalized = None
         self._init = False
@@ -48,16 +49,24 @@ class DatasetSampler(object):
         self.worker.start()
         self._running = True
 
+    def wait(self):
+        if self._running and self.cache_name is None:
+            self.cache_name = self._queue.get()
+            self.worker.join()
+            self._running = False
+
     def get(self):
         if self._reload:
-            cache_name = self._queue.get()
-            self.worker.join()
-            with np.load(cache_name) as cached_arr:
+            if self._running and self.cache_name is None:
+                self.cache_name = self._queue.get()
+                self.worker.join()
+                self._running = False
+            with np.load(self.cache_name) as cached_arr:
                 self.dataset = cached_arr['x'], cached_arr['y']
-            os.remove(cache_name)
-            self._running = False
+            os.remove(self.cache_name)
             if self._init:
                 self._init_process()
+            self.cache_name = None
             self._reload = False
         return self.dataset
 
@@ -95,5 +104,5 @@ def _worker(datalist, cfg, queue, finalized):
 
     with NamedTemporaryFile(delete=False) as cache:
         np.savez(cache, x=x, y=y)
-        queue.put(cache.name)
         del x, y
+        queue.put(cache.name)
