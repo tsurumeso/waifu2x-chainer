@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import os
 import shutil
 import warnings
@@ -105,13 +106,13 @@ def train():
     weight = np.array(weight, dtype=np.float32)
     weight = weight[:, np.newaxis, np.newaxis]
 
-    six.print_('* loading datalist...', end=' ', flush=True)
+    print('* loading datalist...', end=' ')
     datalist = utils.load_datalist(args.dataset_dir, shuffle=True)
     valid_num = int(np.ceil(args.validation_rate * len(datalist)))
     valid_list, train_list = datalist[:valid_num], datalist[valid_num:]
-    six.print_('done')
+    print('done')
 
-    six.print_('* loading model...', end=' ', flush=True)
+    print('* loading model...', end=' ')
     if args.model_name is None:
         if args.method == 'noise':
             model_name = ('anime_style_noise%d_%s'
@@ -139,38 +140,37 @@ def train():
 
     optimizer = optimizers.Adam(alpha=args.learning_rate)
     optimizer.setup(model)
-    six.print_('done')
+    print('done')
 
     valid_config = get_config(args, model, train=False)
     train_config = get_config(args, model, train=True)
 
-    six.print_('* starting processes of dataset sampler...',
-               end=' ', flush=True)
+    print('* starting processes of dataset sampler...', end=' ')
     valid_queue = DatasetSampler(valid_list, valid_config)
     train_queue = DatasetSampler(train_list, train_config)
-    six.print_('done')
+    print('done')
 
     best_count = 0
     best_score = 0
     best_loss = np.inf
     for epoch in range(0, args.epoch):
-        six.print_('### epoch: %d ###' % epoch)
+        print('### epoch: %d ###' % epoch)
         train_queue.reload_switch(init=(epoch < args.epoch - 1))
         for inner_epoch in range(0, args.inner_epoch):
             best_count += 1
-            six.print_('  # inner epoch: %d' % inner_epoch)
+            print('  # inner epoch: %d' % inner_epoch)
             train_loss = train_inner_epoch(
                 model, weight, optimizer, train_queue, args.batch_size)
             valid_score = valid_inner_epoch(
                 model, valid_queue, args.batch_size)
             if train_loss < best_loss:
                 best_loss = train_loss
-                six.print_('    * best loss on train dataset: %f' % train_loss)
+                print('    * best loss on train dataset: %f' % train_loss)
             if valid_score > best_score:
                 best_count = 0
                 best_score = valid_score
-                six.print_('    * best score on validation dataset: PSNR %f dB'
-                           % valid_score)
+                print('    * best score on validation dataset: PSNR %f dB'
+                       % valid_score)
                 best_model = model.copy().to_cpu()
                 epoch_path = 'epoch/%s_epoch%d.npz' % (model_name, epoch)
                 chainer.serializers.save_npz(model_path, best_model)
@@ -181,8 +181,7 @@ def train():
                 if optimizer.alpha < args.lr_min:
                     optimizer.alpha = args.lr_min
                 else:
-                    six.print_('    * learning rate decay: %f'
-                               % optimizer.alpha)
+                    print('    * learning rate decay: %f' % optimizer.alpha)
 
 
 warnings.filterwarnings('ignore')
