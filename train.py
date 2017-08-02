@@ -2,6 +2,7 @@ from __future__ import division
 from __future__ import print_function
 import os
 import shutil
+import time
 import warnings
 
 import chainer
@@ -159,6 +160,7 @@ def train():
         for inner_epoch in range(0, args.inner_epoch):
             best_count += 1
             print('  # inner epoch: %d' % inner_epoch)
+            start = time.time()
             train_loss = train_inner_epoch(
                 model, weight, optimizer, train_queue, args.batch_size)
             train_queue.wait()
@@ -183,6 +185,7 @@ def train():
                     optimizer.alpha = args.lr_min
                 else:
                     print('    * learning rate decay: %f' % optimizer.alpha)
+            print('    * elapsed time: %f sec' % (time.time() - start))
 
 
 warnings.filterwarnings('ignore')
