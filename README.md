@@ -1,10 +1,13 @@
 # waifu2x-chainer
 
-Chainer implementation of waifu2x[[1]](https://github.com/nagadomi/waifu2x) and its model trainer. Note that the training procedure of waifu2x-chainer can be slightly different from original waifu2x.
+Chainer implementation of waifu2x [[1]](https://github.com/nagadomi/waifu2x) and its model trainer.
+Note that the training procedure of waifu2x-chainer can be slightly different from original waifu2x.
 
 ## Summery
 
 <img src="https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/summery.png" width="886">
+
+- 2D character picture (Kagamine Rin) is licensed under CC BY-NC by piapro [2].
 
 ## Requirements
 
@@ -42,27 +45,27 @@ python waifu2x.py
 
 ### Noise reduction
 ```
-python waifu2x.py --method noise --noise_level 1 --input <image or directory> --arch VGG7
+python waifu2x.py --method noise --noise_level 1 --input path/to/image/or/directory --arch VGG7
 
-python waifu2x.py -m noise -n 0 -i <image or directory> -a 0
-python waifu2x.py -m noise -n 2 -i <image or directory> -a 0
-python waifu2x.py -m noise -n 3 -i <image or directory> -a 0
+python waifu2x.py -m noise -n 0 -i path/to/image/or/directory -a 0
+python waifu2x.py -m noise -n 2 -i path/to/image/or/directory -a 0
+python waifu2x.py -m noise -n 3 -i path/to/image/or/directory -a 0
 ```
 
 ### 2x upscaling
 ```
-python waifu2x.py --method scale --input <image or directory> --arch VGG7
+python waifu2x.py --method scale --input path/to/image/or/directory --arch VGG7
 
-python waifu2x.py -m scale -i <image or directory> -a 0
+python waifu2x.py -m scale -i path/to/image/or/directory -a 0
 ```
 
 ### Noise reduction + 2x upscaling
 ```
-python waifu2x.py --method noise_scale --noise_level 1 --input <image or directory> --arch VGG7
+python waifu2x.py --method noise_scale --noise_level 1 --input path/to/image/or/directory --arch VGG7
 
-python waifu2x.py -m noise_scale -n 0 -i <image or directory> -a 0
-python waifu2x.py -m noise_scale -n 2 -i <image or directory> -a 0
-python waifu2x.py -m noise_scale -n 3 -i <image or directory> -a 0
+python waifu2x.py -m noise_scale -n 0 -i path/to/image/or/directory -a 0
+python waifu2x.py -m noise_scale -n 2 -i path/to/image/or/directory -a 0
+python waifu2x.py -m noise_scale -n 3 -i path/to/image/or/directory -a 0
 ```
 
 ### Train your own model
