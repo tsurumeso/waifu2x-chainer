@@ -66,10 +66,14 @@ p.add_argument('--tta', '-t', action='store_true')
 p.add_argument('--tta_level', '-T', type=int, choices=[2, 4, 8], default=8)
 p.add_argument('--block_size', type=int, default=64)
 p.add_argument('--batch_size', type=int, default=8)
+p.add_argument('--width', type=int, default=0)
+p.add_argument('--height', type=int, default=0)
 
 args = p.parse_args()
 if args.arch in srcnn.table:
     args.arch = srcnn.table[args.arch]
+if args.width != 0 and args.height != 0:
+    args.height = 0
 formats = ['.png', '.jpg', '.jpeg', '.bmp', '.gif']
 
 if __name__ == '__main__':
@@ -117,12 +121,16 @@ if __name__ == '__main__':
 
     for path in filelist:
         src = Image.open(path)
+        w, h = src.size[:2]
+        if args.width != 0:
+            args.scale_factor = args.width / w
+        if args.height != 0:
+            args.scale_factor = args.height / h
         icc_profile = src.info.get('icc_profile')
         basename = os.path.basename(path)
         oname, ext = os.path.splitext(basename)
         if ext.lower() in formats:
             oname += ('_(tta%d)' % args.tta_level if args.tta else '_')
-
             dst = src.copy()
             if 'noise_scale' in models:
                 oname += '(noise%d_scale)' % args.noise_level
