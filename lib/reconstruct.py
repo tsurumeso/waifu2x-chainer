@@ -5,8 +5,6 @@ import numpy as np
 from PIL import Image
 import six
 
-from lib import utils
-
 
 def get_outer_padding(size, block_size, offset):
     pad = size % block_size
@@ -21,7 +19,7 @@ def blockwise(src, model, block_size, batch_size):
     if src.ndim == 2:
         src = src[:, :, np.newaxis]
     scale = 1. / 255.
-    xp = utils.get_model_module(model)
+    xp = model.xp
     inner_scale = model.inner_scale
     in_offset = model.offset // inner_scale
 
