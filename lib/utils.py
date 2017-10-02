@@ -4,7 +4,6 @@ import random
 
 import chainer
 import numpy as np
-import six
 
 
 class Namespace(object):
@@ -23,12 +22,6 @@ class Namespace(object):
     def append(self, key, value):
         self.kwargs[key] = value
         setattr(self, key, value)
-
-
-def get_model_module(model):
-    if isinstance(model, chainer.Chain):
-        child = six.next(model.children())
-        return child.xp
 
 
 def set_random_seed(seed, gpu=-1):

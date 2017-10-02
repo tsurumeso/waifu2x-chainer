@@ -23,7 +23,7 @@ from lib.settings import args
 def train_inner_epoch(model, weight, optimizer, data_queue, batch_size):
     sum_loss = 0
     scale = 1. / 255.
-    xp = utils.get_model_module(model)
+    xp = model.xp
     train_x, train_y = data_queue.get()
     perm = np.random.permutation(len(train_x))
     for i in six.moves.range(0, len(train_x), batch_size):
@@ -43,7 +43,7 @@ def train_inner_epoch(model, weight, optimizer, data_queue, batch_size):
 def valid_inner_epoch(model, data_queue, batch_size):
     sum_score = 0
     scale = 1. / 255.
-    xp = utils.get_model_module(model)
+    xp = model.xp
     valid_x, valid_y = data_queue.get()
     perm = np.random.permutation(len(valid_x))
     for i in six.moves.range(0, len(valid_x), batch_size):
