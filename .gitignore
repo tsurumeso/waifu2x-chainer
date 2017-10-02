@@ -3,5 +3,6 @@
 /*.bat
 /*.sh
 /*.npz
+/*.png
 epoch/
 .vscode/
