@@ -5,7 +5,7 @@ Note that the training procedure of waifu2x-chainer can be slightly different fr
 
 ## Summery
 
-<img src="https://raw.githubusercontent.com/tsurumeso/waifu2x-chainer/master/images/summery.png" width="886">
+![](images/summery.png)
 
 - 2D character picture (Kagamine Rin) is licensed under CC BY-NC by piapro [2].
 
