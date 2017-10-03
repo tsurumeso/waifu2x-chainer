@@ -117,53 +117,14 @@ class ResNet10(chainer.Chain):
         return h
 
 
-class ResUpConv10(chainer.Chain):
-
-    """Note
-
-    No batch-norm, no padding and relu to leaky_relu
-
-    """
-
-    def __init__(self, ch):
-        self.ch = ch
-        self.offset = 26
-        self.inner_scale = 2
-        super(ResUpConv10, self).__init__(
-            conv_fe=L.Convolution2D(ch, 32, 3),
-            res1=ResBlock(32, 32),
-            res2=ResBlock(32, 64),
-            res3=ResBlock(64, 64),
-            res4=ResBlock(64, 128),
-            res5=ResBlock(128, 128),
-            conv6=L.Convolution2D(128, 128, 3),
-            conv_be=L.Deconvolution2D(128, ch, 4, 2, 3, nobias=True),
-            conv_bridge=L.Convolution2D(32, 128, 1),
-        )
-
-    def __call__(self, x):
-        h = skip = F.leaky_relu(self.conv_fe(x), 0.1)
-        h = self.res1(h)
-        h = self.res2(h)
-        h = self.res3(h)
-        h = self.res4(h)
-        h = self.res5(h)
-        h = F.leaky_relu(self.conv6(h), 0.1)
-        h = h + self.conv_bridge(skip[:, :, 11:-11, 11:-11])
-        h = self.conv_be(h)
-        return h
-
-
 archs = {
     'VGG7': VGG7,
     'UpConv7': UpConv7,
     'ResNet10': ResNet10,
-    'ResUpConv10': ResUpConv10,
 }
 
 table = {
     '0': 'VGG7',
     '1': 'UpConv7',
     '2': 'ResNet10',
-    '3': 'ResUpConv10',
 }

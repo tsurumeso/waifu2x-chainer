@@ -13,8 +13,7 @@ p.add_argument('--color', '-c', choices=['y', 'rgb'], default='rgb')
 p.add_argument('--arch', '-a',
                choices=['VGG7', '0',
                         'UpConv7', '1',
-                        'ResNet10', '2',
-                        'ResUpConv10', '3'],
+                        'ResNet10', '2'],
                default='VGG7')
 p.add_argument('--method', '-m', choices=['noise', 'scale', 'noise_scale'],
                default='scale')
