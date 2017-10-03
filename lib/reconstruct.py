@@ -18,31 +18,31 @@ def get_outer_padding(size, block_size, offset):
 def blockwise(src, model, block_size, batch_size):
     if src.ndim == 2:
         src = src[:, :, np.newaxis]
-    scale = 1. / 255.
     xp = model.xp
-    inner_scale = model.inner_scale
-    in_offset = model.offset // inner_scale
+    scale = 1. / 255.
 
     in_h, in_w, ch = src.shape
-    out_h, out_w = in_h * inner_scale, in_w * inner_scale
-    in_block_size = block_size // inner_scale
-    block_offset = in_block_size + in_offset * 2
-    in_ph = get_outer_padding(in_h, in_block_size, in_offset)
-    in_pw = get_outer_padding(in_w, in_block_size, in_offset)
+    out_h, out_w = in_h * model.inner_scale, in_w * model.inner_scale
+    scaled_block_size = block_size // model.inner_scale
+    in_offset = model.offset // model.inner_scale
+    in_block_size = scaled_block_size + in_offset * 2
+    in_ph = get_outer_padding(in_h, scaled_block_size, in_offset)
+    in_pw = get_outer_padding(in_w, scaled_block_size, in_offset)
     out_ph = get_outer_padding(out_h, block_size, model.offset)
     out_pw = get_outer_padding(out_w, block_size, model.offset)
+
     psrc = np.pad(
         src, ((in_offset, in_ph), (in_offset, in_pw), (0, 0)), 'edge')
-    nh = (psrc.shape[0] - in_offset * 2) // in_block_size
-    nw = (psrc.shape[1] - in_offset * 2) // in_block_size
+    nh = (psrc.shape[0] - in_offset * 2) // scaled_block_size
+    nw = (psrc.shape[1] - in_offset * 2) // scaled_block_size
     psrc = psrc.transpose(2, 0, 1)
 
-    x = np.zeros((nh * nw, ch, block_offset, block_offset), dtype=np.uint8)
+    x = np.zeros((nh * nw, ch, in_block_size, in_block_size), dtype=np.uint8)
     for i in range(0, nh):
-        ih = i * in_block_size
+        ih = i * scaled_block_size
         for j in range(0, nw):
-            jw = j * in_block_size
-            psrc_ij = psrc[:, ih:ih + block_offset, jw:jw + block_offset]
+            jw = j * scaled_block_size
+            psrc_ij = psrc[:, ih:ih + in_block_size, jw:jw + in_block_size]
             x[(i * nw) + j, :, :, :] = psrc_ij
 
     y = np.zeros((nh * nw, ch, block_size, block_size), dtype=np.float32)
