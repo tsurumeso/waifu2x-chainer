@@ -16,9 +16,9 @@ Note that the training procedure of waifu2x-chainer can be slightly different fr
 
 ### Python packages
   - Chainer
-  - Cupy (Optional, CUDA library required)
+  - Cupy (for GPU support)
   - Pillow
-  - Wand (MagickWand library required)
+  - Wand (for training)
 
 ## Installation
 
