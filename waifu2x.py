@@ -128,25 +128,25 @@ if __name__ == '__main__':
             args.scale_factor = args.height / h
         icc_profile = src.info.get('icc_profile')
         basename = os.path.basename(path)
-        oname, ext = os.path.splitext(basename)
+        outname, ext = os.path.splitext(basename)
         if ext.lower() in ['.png', '.jpg', '.jpeg', '.bmp']:
-            oname += ('_(tta%d)' % args.tta_level if args.tta else '_')
+            outname += ('_(tta%d)' % args.tta_level if args.tta else '_')
             dst = src.copy()
             if 'noise_scale' in models:
-                oname += '(noise%d_scale)' % args.noise_level
+                outname += '(noise%d_scale)' % args.noise_level
                 dst = upscale_image(dst, models['noise_scale'], args)
             else:
                 if 'noise' in models:
-                    oname += '(noise%d)' % args.noise_level
+                    outname += '(noise%d)' % args.noise_level
                     dst = denoise_image(dst, models['noise'], args)
                 if 'scale' in models:
-                    oname += '(scale%.1fx)' % args.scale_factor
+                    outname += '(scale%.1fx)' % args.scale_factor
                     dst = upscale_image(dst, models['scale'], args)
 
             if args.model_dir is None:
-                oname += '(%s_%s).png' % (args.arch.lower(), args.color)
+                outname += '(%s_%s).png' % (args.arch.lower(), args.color)
             else:
-                oname += '(model_%s).png' % args.color
-            opath = os.path.join(args.output, oname)
-            dst.save(opath, icc_profile=icc_profile)
-            six.print_('Saved as \'%s\'' % opath)
+                outname += '(model_%s).png' % args.color
+            outpath = os.path.join(args.output, outname)
+            dst.save(outpath, icc_profile=icc_profile)
+            six.print_('Saved as \'%s\'' % outpath)
