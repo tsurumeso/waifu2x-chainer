@@ -3,7 +3,7 @@
 Chainer implementation of waifu2x [[1]](https://github.com/nagadomi/waifu2x) and its model trainer.
 Note that the training procedure of waifu2x-chainer can be slightly different from original waifu2x.
 
-## Summery
+## Summary
 
 ![](images/summery.png)
 
@@ -11,10 +11,6 @@ Note that the training procedure of waifu2x-chainer can be slightly different fr
 
 ## Requirements
 
-### Platform
-  - Python 2.7.6+, 3.5.1+, 3.6.0+
-
-### Python packages
   - Chainer
   - Cupy (for GPU support)
   - Pillow
