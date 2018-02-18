@@ -25,11 +25,11 @@ def denoise_image(src, model, cfg):
 
 def upscale_image(src, model, cfg):
     dst = src
-    if model.inner_scale == 1:
-        dst = src.resize((src.size[0] * 2, src.size[1] * 2), Image.NEAREST)
     log_scale = np.log2(cfg.scale_factor)
     for _ in range(int(np.ceil(log_scale))):
         six.print_('2.0x upscaling...', end=' ', flush=True)
+        if model.inner_scale == 1:
+            dst = dst.resize((dst.size[0] * 2, dst.size[1] * 2), Image.NEAREST)
         if cfg.tta:
             dst = reconstruct.image_tta(
                 dst, model, cfg.tta_level, cfg.block_size, cfg.batch_size)
