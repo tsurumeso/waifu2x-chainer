@@ -81,8 +81,15 @@ if __name__ == '__main__':
         model_dir = 'models/%s' % args.arch.lower()
     else:
         model_dir = args.model_dir
-    if not os.path.exists(args.output):
-        os.makedirs(args.output)
+    if os.path.isdir(args.output):
+        if not os.path.exists(args.output):
+            os.makedirs(args.output)
+    else:
+        dirname = os.path.dirname(args.output)
+        if len(dirname) == 0:
+            dirname = './'
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
 
     models = {}
     flag = False
@@ -146,6 +153,13 @@ if __name__ == '__main__':
                 outname += '(%s_%s).png' % (args.arch.lower(), args.color)
             else:
                 outname += '(model_%s).png' % args.color
-            outpath = os.path.join(args.output, outname)
+
+            if os.path.isdir(args.output):
+                outpath = os.path.join(args.output, outname)
+            else:
+                if os.path.exists(args.output):
+                    outpath = os.path.join(dirname, outname)
+                else:
+                    outpath = args.output
             dst.save(outpath, icc_profile=icc_profile)
             six.print_('Saved as \'%s\'' % outpath)
