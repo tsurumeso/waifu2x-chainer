@@ -141,7 +141,7 @@ if args.width != 0 and args.height != 0:
 if __name__ == '__main__':
     models = load_models(args)
 
-    if os.path.isdir(args.output):
+    if '.png' not in args.output:
         if not os.path.exists(args.output):
             os.makedirs(args.output)
     else:
