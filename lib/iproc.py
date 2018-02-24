@@ -9,7 +9,7 @@ from PIL import Image
 
 try:
     from wand.image import Image as WandImage
-except(ModuleNotFoundError):
+except(ModuleNotFoundError, ImportError):
     pass
 
 
