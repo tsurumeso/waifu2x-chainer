@@ -1,7 +1,7 @@
 # waifu2x-chainer
 
 Chainer implementation of waifu2x [[1]](https://github.com/nagadomi/waifu2x) and its model trainer.
-Note that the training procedure of waifu2x-chainer can be slightly different from original waifu2x.
+Note that the training procedure of waifu2x-chainer may be slightly different from original waifu2x.
 
 ## Summary
 
@@ -66,7 +66,7 @@ python waifu2x.py -m noise_scale -n 3 -i path/to/image/or/directory -a 0
 
 ### Train your own model
 
-Please see template script at
+Please refer template script at
 <a href="https://github.com/tsurumeso/waifu2x-chainer/tree/master/appendix/linux">appendix/linux</a>
 or
 <a href="https://github.com/tsurumeso/waifu2x-chainer/tree/master/appendix/windows">appendix/windows</a>
