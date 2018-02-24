@@ -1,5 +1,4 @@
 import argparse
-import glob
 import os
 
 import chainer
@@ -11,6 +10,7 @@ import six
 from lib import iproc
 from lib import reconstruct
 from lib import srcnn
+from lib import utils
 
 
 def denoise_image(src, model, cfg):
@@ -151,7 +151,7 @@ if __name__ == '__main__':
         if not os.path.exists(dirname):
             os.makedirs(dirname)
     if os.path.isdir(args.input):
-        filelist = glob.glob(os.path.join(args.input, '*.*'))
+        filelist = utils.load_datalist(args.input)
     else:
         filelist = [args.input]
 
