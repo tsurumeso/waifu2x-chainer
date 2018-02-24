@@ -39,6 +39,11 @@ python waifu2x.py
 
 ## Usage
 
+Specifing an output file name with --output (-o) option, the file extension must be PNG.
+```
+--output path/to/image.png/or/directory
+```
+
 ### Noise reduction
 ```
 python waifu2x.py --method noise --noise_level 1 --input path/to/image/or/directory --arch VGG7
