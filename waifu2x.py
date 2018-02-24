@@ -14,14 +14,7 @@ from lib import srcnn
 
 
 def denoise_image(src, model, cfg):
-    alpha = None
-    dst = src.convert('RGB')
-    if src.mode == 'LA' or src.mode == 'RGBA':
-        six.print_('Splitting alpha channel...', end=' ', flush=True)
-        alpha = src.split()[-1]
-        dst = iproc.alpha_make_border(dst, alpha, model.offset)
-        six.print_('OK')
-
+    dst, alpha = split_alpha(src, model.offset)
     six.print_('Level %d denoising...' % cfg.noise_level, end=' ', flush=True)
     if cfg.tta:
         dst = reconstruct.image_tta(
@@ -35,14 +28,7 @@ def denoise_image(src, model, cfg):
 
 
 def upscale_image(src, model, cfg):
-    alpha = None
-    dst = src.convert('RGB')
-    if src.mode == 'LA' or src.mode == 'RGBA':
-        six.print_('Splitting alpha channel...', end=' ', flush=True)
-        alpha = src.split()[-1]
-        dst = iproc.alpha_make_border(dst, alpha, model.offset)
-        six.print_('OK')
-
+    dst, alpha = split_alpha(src, model.offset)
     log_scale = np.log2(cfg.scale_factor)
     for _ in range(int(np.ceil(log_scale))):
         six.print_('2.0x upscaling...', end=' ', flush=True)
@@ -71,6 +57,55 @@ def upscale_image(src, model, cfg):
             alpha = alpha.resize((dst_w, dst_h), Image.LANCZOS)
         dst.putalpha(alpha)
     return dst
+
+
+def split_alpha(src, offset):
+    alpha = None
+    rgb = src.convert('RGB')
+    if src.mode == 'LA' or src.mode == 'RGBA':
+        six.print_('Splitting alpha channel...', end=' ', flush=True)
+        alpha = src.split()[-1]
+        rgb = iproc.alpha_make_border(rgb, alpha, offset)
+        six.print_('OK')
+    return rgb, alpha
+
+
+def load_models(args):
+    ch = 3 if args.color == 'rgb' else 1
+    if args.model_dir is None:
+        model_dir = 'models/%s' % args.arch.lower()
+    else:
+        model_dir = args.model_dir
+
+    models = {}
+    flag = False
+    if args.method == 'noise_scale':
+        model_name = ('anime_style_noise%d_scale_%s.npz'
+                      % (args.noise_level, args.color))
+        model_path = os.path.join(model_dir, model_name)
+        if os.path.exists(model_path):
+            models['noise_scale'] = srcnn.archs[args.arch](ch)
+            chainer.serializers.load_npz(model_path, models['noise_scale'])
+        else:
+            flag = True
+    if args.method == 'scale' or flag:
+        model_name = 'anime_style_scale_%s.npz' % args.color
+        model_path = os.path.join(model_dir, model_name)
+        models['scale'] = srcnn.archs[args.arch](ch)
+        chainer.serializers.load_npz(model_path, models['scale'])
+    if args.method == 'noise' or flag:
+        model_name = ('anime_style_noise%d_%s.npz'
+                      % (args.noise_level, args.color))
+        model_path = os.path.join(model_dir, model_name)
+        models['noise'] = srcnn.archs[args.arch](ch)
+        chainer.serializers.load_npz(model_path, models['noise'])
+
+    if args.gpu >= 0:
+        cuda.check_cuda_available()
+        cuda.get_device(args.gpu).use()
+        for _, model in models.items():
+            model.to_gpu()
+    return models
 
 
 p = argparse.ArgumentParser()
@@ -104,11 +139,8 @@ if args.width != 0 and args.height != 0:
 
 
 if __name__ == '__main__':
-    ch = 3 if args.color == 'rgb' else 1
-    if args.model_dir is None:
-        model_dir = 'models/%s' % args.arch.lower()
-    else:
-        model_dir = args.model_dir
+    models = load_models(args)
+
     if os.path.isdir(args.output):
         if not os.path.exists(args.output):
             os.makedirs(args.output)
@@ -118,36 +150,6 @@ if __name__ == '__main__':
             dirname = './'
         if not os.path.exists(dirname):
             os.makedirs(dirname)
-
-    models = {}
-    flag = False
-    if args.method == 'noise_scale':
-        model_name = ('anime_style_noise%d_scale_%s.npz'
-                      % (args.noise_level, args.color))
-        model_path = os.path.join(model_dir, model_name)
-        if os.path.exists(model_path):
-            models['noise_scale'] = srcnn.archs[args.arch](ch)
-            chainer.serializers.load_npz(model_path, models['noise_scale'])
-        else:
-            flag = True
-    if args.method == 'scale' or flag:
-        model_name = 'anime_style_scale_%s.npz' % args.color
-        model_path = os.path.join(model_dir, model_name)
-        models['scale'] = srcnn.archs[args.arch](ch)
-        chainer.serializers.load_npz(model_path, models['scale'])
-    if args.method == 'noise' or flag:
-        model_name = ('anime_style_noise%d_%s.npz'
-                      % (args.noise_level, args.color))
-        model_path = os.path.join(model_dir, model_name)
-        models['noise'] = srcnn.archs[args.arch](ch)
-        chainer.serializers.load_npz(model_path, models['noise'])
-
-    if args.gpu >= 0:
-        cuda.check_cuda_available()
-        cuda.get_device(args.gpu).use()
-        for _, model in models.items():
-            model.to_gpu()
-
     if os.path.isdir(args.input):
         filelist = glob.glob(os.path.join(args.input, '*.*'))
     else:

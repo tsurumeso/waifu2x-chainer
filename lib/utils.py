@@ -35,7 +35,9 @@ def load_datalist(dir, shuffle=False):
     files = os.listdir(dir)
     datalist = []
     for file in files:
-        datalist.append(os.path.join(dir, file))
+        path = os.path.join(dir, file)
+        if os.path.isfile(path):
+            datalist.append(path)
     if shuffle:
         random.shuffle(datalist)
     return datalist
