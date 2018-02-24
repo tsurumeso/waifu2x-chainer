@@ -8,40 +8,68 @@ import numpy as np
 from PIL import Image
 import six
 
+from lib import iproc
 from lib import reconstruct
 from lib import srcnn
 
 
 def denoise_image(src, model, cfg):
+    alpha = None
+    dst = src.convert('RGB')
+    if src.mode == 'LA' or src.mode == 'RGBA':
+        six.print_('Splitting alpha channel...', end=' ', flush=True)
+        alpha = src.split()[-1]
+        dst = iproc.alpha_make_border(dst, alpha, model.offset)
+        six.print_('OK')
+
     six.print_('Level %d denoising...' % cfg.noise_level, end=' ', flush=True)
     if cfg.tta:
         dst = reconstruct.image_tta(
-            src, model, cfg.tta_level, cfg.block_size, cfg.batch_size)
+            dst, model, cfg.tta_level, cfg.block_size, cfg.batch_size)
     else:
-        dst = reconstruct.image(src, model, cfg.block_size, cfg.batch_size)
+        dst = reconstruct.image(dst, model, cfg.block_size, cfg.batch_size)
     six.print_('OK')
+    if alpha is not None:
+        dst.putalpha(alpha)
     return dst
 
 
 def upscale_image(src, model, cfg):
-    dst = src
+    alpha = None
+    dst = src.convert('RGB')
+    if src.mode == 'LA' or src.mode == 'RGBA':
+        six.print_('Splitting alpha channel...', end=' ', flush=True)
+        alpha = src.split()[-1]
+        dst = iproc.alpha_make_border(dst, alpha, model.offset)
+        six.print_('OK')
+
     log_scale = np.log2(cfg.scale_factor)
     for _ in range(int(np.ceil(log_scale))):
         six.print_('2.0x upscaling...', end=' ', flush=True)
         if model.inner_scale == 1:
             dst = dst.resize((dst.size[0] * 2, dst.size[1] * 2), Image.NEAREST)
+            if alpha is not None:
+                alpha = alpha.resize((alpha.size[0] * 2, alpha.size[1] * 2),
+                                     Image.NEAREST)
         if cfg.tta:
             dst = reconstruct.image_tta(
                 dst, model, cfg.tta_level, cfg.block_size, cfg.batch_size)
         else:
             dst = reconstruct.image(dst, model, cfg.block_size, cfg.batch_size)
+        if alpha is not None:
+            alpha = reconstruct.image(alpha, model, cfg.block_size,
+                                      cfg.batch_size)
         six.print_('OK')
-    if np.round(log_scale % 1.0, 6) != 0:
+    dst_w = int(np.round(src.size[0] * cfg.scale_factor))
+    dst_h = int(np.round(src.size[1] * cfg.scale_factor))
+    if np.round(log_scale % 1.0, 6) != 0 or log_scale <= 0:
         six.print_('Resizing...', end=' ', flush=True)
-        dst_w = int(np.round(src.size[0] * cfg.scale_factor))
-        dst_h = int(np.round(src.size[1] * cfg.scale_factor))
-        dst = dst.resize((dst_w, dst_h), Image.ANTIALIAS)
+        dst = dst.resize((dst_w, dst_h), Image.LANCZOS)
         six.print_('OK')
+    if alpha is not None:
+        if alpha.size[0] != dst_w or alpha.size[1] != dst_h:
+            alpha = alpha.resize((dst_w, dst_h), Image.LANCZOS)
+        dst.putalpha(alpha)
     return dst
 
 
