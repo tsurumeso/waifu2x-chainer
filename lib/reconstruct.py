@@ -5,6 +5,8 @@ import numpy as np
 from PIL import Image
 import six
 
+from lib import iproc
+
 
 def get_outer_padding(size, block_size, offset):
     pad = size % block_size
@@ -23,25 +25,25 @@ def blockwise(src, model, block_size, batch_size):
 
     in_h, in_w, ch = src.shape
     out_h, out_w = in_h * model.inner_scale, in_w * model.inner_scale
-    scaled_block_size = block_size // model.inner_scale
-    in_offset = model.offset // model.inner_scale
-    in_block_size = scaled_block_size + in_offset * 2
-    in_ph = get_outer_padding(in_h, scaled_block_size, in_offset)
-    in_pw = get_outer_padding(in_w, scaled_block_size, in_offset)
+    inner_block_size = block_size // model.inner_scale
+    inner_offset = model.offset // model.inner_scale
+    in_block_size = inner_block_size + inner_offset * 2
+    in_ph = get_outer_padding(in_h, inner_block_size, inner_offset)
+    in_pw = get_outer_padding(in_w, inner_block_size, inner_offset)
     out_ph = get_outer_padding(out_h, block_size, model.offset)
     out_pw = get_outer_padding(out_w, block_size, model.offset)
 
     psrc = np.pad(
-        src, ((in_offset, in_ph), (in_offset, in_pw), (0, 0)), 'edge')
-    nh = (psrc.shape[0] - in_offset * 2) // scaled_block_size
-    nw = (psrc.shape[1] - in_offset * 2) // scaled_block_size
+        src, ((inner_offset, in_ph), (inner_offset, in_pw), (0, 0)), 'edge')
+    nh = (psrc.shape[0] - inner_offset * 2) // inner_block_size
+    nw = (psrc.shape[1] - inner_offset * 2) // inner_block_size
     psrc = psrc.transpose(2, 0, 1)
 
     x = np.zeros((nh * nw, ch, in_block_size, in_block_size), dtype=np.uint8)
     for i in range(0, nh):
-        ih = i * scaled_block_size
+        ih = i * inner_block_size
         for j in range(0, nw):
-            jw = j * scaled_block_size
+            jw = j * inner_block_size
             psrc_ij = psrc[:, ih:ih + in_block_size, jw:jw + in_block_size]
             x[(i * nw) + j, :, :, :] = psrc_ij
 
@@ -95,6 +97,7 @@ def image_tta(src, model, tta_level, block_size, batch_size):
     dst = np.zeros((src.size[1] * inner_scale, src.size[0] * inner_scale, 3))
     patterns = get_tta_patterns(src, tta_level)
     if model.ch == 1:
+        y2rgb = src.mode == 'L'
         for i, (pat, inv) in enumerate(patterns):
             six.print_(i, end=' ', flush=True)
             pat = np.array(pat.convert('YCbCr'), dtype=np.uint8)
@@ -108,11 +111,18 @@ def image_tta(src, model, tta_level, block_size, batch_size):
         dst = np.clip(dst, 0, 1) * 255
         dst[:, :, 1:] = cbcr
         dst = dst.astype(np.uint8)
-        dst = Image.fromarray(dst, mode='YCbCr').convert('RGB')
+        dst = Image.fromarray(dst, mode='YCbCr')
+        if y2rgb:
+            dst = dst.split()[0]
+        else:
+            dst = dst.convert('RGB')
     elif model.ch == 3:
+        y2rgb = src.mode == 'L'
+        if y2rgb:
+            src = iproc.y2rgb(src)
         for i, (pat, inv) in enumerate(patterns):
             six.print_(i, end=' ', flush=True)
-            pat = np.array(pat.convert('RGB'), dtype=np.uint8)
+            pat = np.array(pat, dtype=np.uint8)
             tmp = blockwise(pat, model, block_size, batch_size)
             if inv is not None:
                 tmp = inv(tmp)
@@ -120,19 +130,31 @@ def image_tta(src, model, tta_level, block_size, batch_size):
         dst /= len(patterns)
         dst = np.clip(dst, 0, 1) * 255
         dst = Image.fromarray(dst.astype(np.uint8))
+        if y2rgb:
+            dst = dst.convert('YCbCr').split()[0]
     return dst
 
 
 def image(src, model, block_size, batch_size):
     if model.ch == 1:
+        y2rgb = src.mode == 'L'
         src = np.array(src.convert('YCbCr'), dtype=np.uint8)
         dst = blockwise(src[:, :, 0], model, block_size, batch_size)
         dst = np.clip(dst, 0, 1) * 255
         src[:, :, 0] = dst[:, :, 0]
-        dst = Image.fromarray(src, mode='YCbCr').convert('RGB')
+        dst = Image.fromarray(src, mode='YCbCr')
+        if y2rgb:
+            dst = dst.split()[0]
+        else:
+            dst = dst.convert('RGB')
     elif model.ch == 3:
-        src = np.array(src.convert('RGB'), dtype=np.uint8)
+        y2rgb = src.mode == 'L'
+        if y2rgb:
+            src = iproc.y2rgb(src)
+        src = np.array(src, dtype=np.uint8)
         dst = blockwise(src, model, block_size, batch_size)
         dst = np.clip(dst, 0, 1) * 255
         dst = Image.fromarray(dst.astype(np.uint8))
+        if y2rgb:
+            dst = dst.convert('YCbCr').split()[0]
     return dst

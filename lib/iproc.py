@@ -1,10 +1,52 @@
 from __future__ import division
 import io
 
+import chainer
 from chainer import cuda
+import chainer.links as L
 import numpy as np
 from PIL import Image
-from wand.image import Image as WandImage
+
+try:
+    from wand.image import Image as WandImage
+except(ModuleNotFoundError):
+    pass
+
+
+def alpha_make_border(rgb, alpha, offset):
+    sum2d = L.Convolution2D(1, 1, 3, 1, 1, nobias=True)
+    sum2d.W.data = np.ones((1, 1, 3, 3))
+
+    mask = np.array(alpha, dtype=np.float32)
+    mask[mask > 0] = 1
+    mask_nega = np.abs(mask - 1).astype(np.uint8) == 1
+    eps = 1.0e-7
+
+    rgb = np.array(rgb, dtype=np.float32).transpose(2, 0, 1)
+    rgb[0][mask_nega] = 0
+    rgb[1][mask_nega] = 0
+    rgb[2][mask_nega] = 0
+
+    with chainer.no_backprop_mode():
+        for _ in range(offset):
+            mask_weight = sum2d(mask[np.newaxis, np.newaxis, :, :]).data[0, 0]
+            for i in range(3):
+                border = sum2d(rgb[i][np.newaxis, np.newaxis, :, :]).data[0, 0]
+                border /= (mask_weight + eps)
+                rgb[i][mask_nega] = border[mask_nega]
+            mask = mask_weight
+            mask[mask > 0] = 1
+            mask_nega = np.abs(mask - 1).astype(np.uint8) == 1
+    rgb = np.clip(rgb, 0, 255)
+    return Image.fromarray(rgb.transpose(1, 2, 0).astype(np.uint8))
+
+
+def y2rgb(src):
+    rgb = np.zeros((src.size[1], src.size[0], 3))
+    rgb[:, :, 0] = np.array(src)
+    rgb[:, :, 1] = np.array(src)
+    rgb[:, :, 2] = np.array(src)
+    return Image.fromarray(rgb.astype(np.uint8))
 
 
 def read_image_rgb_uint8(path):
