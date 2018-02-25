@@ -97,7 +97,6 @@ def image_tta(src, model, tta_level, block_size, batch_size):
     dst = np.zeros((src.size[1] * inner_scale, src.size[0] * inner_scale, 3))
     patterns = get_tta_patterns(src, tta_level)
     if model.ch == 1:
-        y2rgb = src.mode == 'L'
         for i, (pat, inv) in enumerate(patterns):
             six.print_(i, end=' ', flush=True)
             pat = np.array(pat.convert('YCbCr'), dtype=np.uint8)
@@ -111,15 +110,8 @@ def image_tta(src, model, tta_level, block_size, batch_size):
         dst = np.clip(dst, 0, 1) * 255
         dst[:, :, 1:] = cbcr
         dst = dst.astype(np.uint8)
-        dst = Image.fromarray(dst, mode='YCbCr')
-        if y2rgb:
-            dst = dst.split()[0]
-        else:
-            dst = dst.convert('RGB')
+        dst = Image.fromarray(dst, mode='YCbCr').convert('RGB')
     elif model.ch == 3:
-        y2rgb = src.mode == 'L'
-        if y2rgb:
-            src = iproc.y2rgb(src)
         for i, (pat, inv) in enumerate(patterns):
             six.print_(i, end=' ', flush=True)
             pat = np.array(pat, dtype=np.uint8)
@@ -130,8 +122,6 @@ def image_tta(src, model, tta_level, block_size, batch_size):
         dst /= len(patterns)
         dst = np.clip(dst, 0, 1) * 255
         dst = Image.fromarray(dst.astype(np.uint8))
-        if y2rgb:
-            dst = dst.convert('YCbCr').split()[0]
     return dst
 
 
