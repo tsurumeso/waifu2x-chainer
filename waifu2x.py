@@ -165,7 +165,7 @@ if __name__ == '__main__':
         icc_profile = src.info.get('icc_profile')
         basename = os.path.basename(path)
         outname, ext = os.path.splitext(basename)
-        if ext.lower() in ['.png', '.jpg', '.jpeg', '.bmp']:
+        if ext.lower() in ['.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff']:
             outname += ('_(tta%d)' % args.tta_level if args.tta else '_')
             dst = src.copy()
             if 'noise_scale' in models:
