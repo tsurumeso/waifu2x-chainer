@@ -27,24 +27,31 @@ def denoise_image(src, model, cfg):
     return dst
 
 
-def upscale_image(src, model, cfg):
-    dst, alpha = split_alpha(src, model.offset)
+def upscale_image(src, scale_model, cfg, alpha_model=None):
+    dst, alpha = split_alpha(src, scale_model.offset)
     log_scale = np.log2(cfg.scale_factor)
-    for _ in range(int(np.ceil(log_scale))):
+    for i in range(int(np.ceil(log_scale))):
         six.print_('2.0x upscaling...', end=' ', flush=True)
+        model = alpha_model
+        if i == 0 or alpha_model is None:
+            model = scale_model
         if model.inner_scale == 1:
             dst = dst.resize((dst.size[0] * 2, dst.size[1] * 2), Image.NEAREST)
             if alpha is not None:
-                alpha = alpha.resize((alpha.size[0] * 2, alpha.size[1] * 2),
-                                     Image.NEAREST)
+                alpha = alpha.resize(
+                    (alpha.size[0] * 2, alpha.size[1] * 2), Image.NEAREST)
         if cfg.tta:
             dst = reconstruct.image_tta(
                 dst, model, cfg.tta_level, cfg.block_size, cfg.batch_size)
         else:
             dst = reconstruct.image(dst, model, cfg.block_size, cfg.batch_size)
         if alpha is not None:
-            alpha = reconstruct.image(alpha, model, cfg.block_size,
-                                      cfg.batch_size)
+            if alpha_model is None:
+                alpha = reconstruct.image(
+                    alpha, model, cfg.block_size, cfg.batch_size)
+            else:
+                alpha = reconstruct.image(
+                    alpha, alpha_model, cfg.block_size, cfg.batch_size)
         six.print_('OK')
     dst_w = int(np.round(src.size[0] * cfg.scale_factor))
     dst_h = int(np.round(src.size[1] * cfg.scale_factor))
@@ -86,6 +93,10 @@ def load_models(args):
         if os.path.exists(model_path):
             models['noise_scale'] = srcnn.archs[args.arch](ch)
             chainer.serializers.load_npz(model_path, models['noise_scale'])
+            alpha_model_name = 'anime_style_scale_%s.npz' % args.color
+            alpha_model_path = os.path.join(model_dir, alpha_model_name)
+            models['alpha'] = srcnn.archs[args.arch](ch)
+            chainer.serializers.load_npz(alpha_model_path, models['alpha'])
         else:
             flag = True
     if args.method == 'scale' or flag:
@@ -169,8 +180,10 @@ if __name__ == '__main__':
             outname += ('_(tta%d)' % args.tta_level if args.tta else '_')
             dst = src.copy()
             if 'noise_scale' in models:
-                outname += '(noise%d_scale)' % args.noise_level
-                dst = upscale_image(dst, models['noise_scale'], args)
+                outname += ('(noise%d_scale%.1fx)'
+                            % (args.noise_level, args.scale_factor))
+                dst = upscale_image(
+                    dst, models['noise_scale'], args, models['alpha'])
             else:
                 if 'noise' in models:
                     outname += '(noise%d)' % args.noise_level
