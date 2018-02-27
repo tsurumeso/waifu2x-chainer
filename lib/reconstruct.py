@@ -1,5 +1,6 @@
 from __future__ import division
 
+import chainer
 from chainer import cuda
 import numpy as np
 from PIL import Image
@@ -48,10 +49,11 @@ def blockwise(src, model, block_size, batch_size):
             x[(i * nw) + j, :, :, :] = psrc_ij
 
     y = np.zeros((nh * nw, ch, block_size, block_size), dtype=np.float32)
-    for i in range(0, nh * nw, batch_size):
-        batch_x = xp.array(x[i:i + batch_size], dtype=np.float32) * scale
-        batch_y = model(batch_x)
-        y[i:i + batch_size] = cuda.to_cpu(batch_y.data)
+    with chainer.no_backprop_mode():
+        for i in range(0, nh * nw, batch_size):
+            batch_x = xp.array(x[i:i + batch_size], dtype=np.float32) * scale
+            batch_y = model(batch_x)
+            y[i:i + batch_size] = cuda.to_cpu(batch_y.data)
 
     dst = np.zeros((ch, out_h + out_ph, out_w + out_pw), dtype=np.float32)
     for i in range(0, nh):
