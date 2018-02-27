@@ -126,6 +126,8 @@ def image_tta(src, model, tta_level, block_size, batch_size):
 
 
 def image(src, model, block_size, batch_size):
+    if src is None:
+        return None
     if model.ch == 1:
         y2rgb = src.mode == 'L'
         src = np.array(src.convert('YCbCr'), dtype=np.uint8)

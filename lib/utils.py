@@ -31,7 +31,7 @@ def set_random_seed(seed, gpu=-1):
         cupy.random.seed(seed)
 
 
-def load_datalist(dir, shuffle=False):
+def load_filelist(dir, shuffle=False):
     files = os.listdir(dir)
     datalist = []
     for file in files:

@@ -72,11 +72,18 @@ def wand_to_array(src):
     return dst
 
 
-def scale(src, factor, filter='box'):
+def scale(src, ratio, filter='box'):
     with array_to_wand(src) as tmp:
         h, w = src.shape[:2]
-        tmp.resize(int(w * factor), int(h * factor), filter)
+        tmp.resize(int(w * ratio), int(h * ratio), filter)
         dst = wand_to_array(tmp)
+    return dst
+
+
+def scale2x(src):
+    if src is None:
+        return None
+    dst = src.resize((src.size[0] * 2, src.size[1] * 2), Image.NEAREST)
     return dst
 
 

@@ -16,7 +16,7 @@ from lib import srcnn
 from lib import utils
 
 from lib.dataset_sampler import DatasetSampler
-from lib.loss.clipped_weighted_huber_loss import clipped_weighted_huber_loss
+from lib.loss import clipped_weighted_huber_loss
 from lib.settings import args
 
 
@@ -107,10 +107,10 @@ def train():
     weight = np.array(weight, dtype=np.float32)
     weight = weight[:, np.newaxis, np.newaxis]
 
-    print('* loading datalist...', end=' ')
-    datalist = utils.load_datalist(args.dataset_dir, shuffle=True)
-    valid_num = int(np.ceil(args.validation_rate * len(datalist)))
-    valid_list, train_list = datalist[:valid_num], datalist[valid_num:]
+    print('* loading filelist...', end=' ')
+    filelist = utils.load_filelist(args.dataset_dir, shuffle=True)
+    valid_num = int(np.ceil(args.validation_rate * len(filelist)))
+    valid_list, train_list = filelist[:valid_num], filelist[valid_num:]
     print('done')
 
     print('* loading model...', end=' ')

@@ -36,22 +36,19 @@ def upscale_image(src, scale_model, cfg, alpha_model=None):
         if i == 0 or alpha_model is None:
             model = scale_model
         if model.inner_scale == 1:
-            dst = dst.resize((dst.size[0] * 2, dst.size[1] * 2), Image.NEAREST)
-            if alpha is not None:
-                alpha = alpha.resize(
-                    (alpha.size[0] * 2, alpha.size[1] * 2), Image.NEAREST)
+            dst = iproc.scale2x(dst)  # Nearest neighbor 2x scaling
+            alpha = iproc.scale2x(alpha)  # Nearest neighbor 2x scaling
         if cfg.tta:
             dst = reconstruct.image_tta(
                 dst, model, cfg.tta_level, cfg.block_size, cfg.batch_size)
         else:
             dst = reconstruct.image(dst, model, cfg.block_size, cfg.batch_size)
-        if alpha is not None:
-            if alpha_model is None:
-                alpha = reconstruct.image(
-                    alpha, model, cfg.block_size, cfg.batch_size)
-            else:
-                alpha = reconstruct.image(
-                    alpha, alpha_model, cfg.block_size, cfg.batch_size)
+        if alpha_model is None:
+            alpha = reconstruct.image(
+                alpha, scale_model, cfg.block_size, cfg.batch_size)
+        else:
+            alpha = reconstruct.image(
+                alpha, alpha_model, cfg.block_size, cfg.batch_size)
         six.print_('OK')
     dst_w = int(np.round(src.size[0] * cfg.scale_factor))
     dst_h = int(np.round(src.size[1] * cfg.scale_factor))
@@ -162,7 +159,7 @@ if __name__ == '__main__':
         if not os.path.exists(dirname):
             os.makedirs(dirname)
     if os.path.isdir(args.input):
-        filelist = utils.load_datalist(args.input)
+        filelist = utils.load_filelist(args.input)
     else:
         filelist = [args.input]
 
