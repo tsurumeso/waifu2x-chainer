@@ -29,7 +29,7 @@ def denoise_image(src, model, cfg):
 
 def upscale_image(src, scale_model, cfg, alpha_model=None):
     dst, alpha = split_alpha(src, scale_model.offset)
-    log_scale = np.log2(cfg.scale_factor)
+    log_scale = np.log2(cfg.scale_ratio)
     for i in range(int(np.ceil(log_scale))):
         six.print_('2.0x upscaling...', end=' ', flush=True)
         model = alpha_model
@@ -50,8 +50,8 @@ def upscale_image(src, scale_model, cfg, alpha_model=None):
             alpha = reconstruct.image(
                 alpha, alpha_model, cfg.block_size, cfg.batch_size)
         six.print_('OK')
-    dst_w = int(np.round(src.size[0] * cfg.scale_factor))
-    dst_h = int(np.round(src.size[1] * cfg.scale_factor))
+    dst_w = int(np.round(src.size[0] * cfg.scale_ratio))
+    dst_h = int(np.round(src.size[1] * cfg.scale_ratio))
     if np.round(log_scale % 1.0, 6) != 0 or log_scale <= 0:
         six.print_('Resizing...', end=' ', flush=True)
         dst = dst.resize((dst_w, dst_h), Image.LANCZOS)
@@ -128,7 +128,7 @@ p.add_argument('--arch', '-a',
 p.add_argument('--model_dir', '-d', default=None)
 p.add_argument('--method', '-m', choices=['noise', 'scale', 'noise_scale'],
                default='scale')
-p.add_argument('--scale_factor', '-s', type=float, default=2.0)
+p.add_argument('--scale_ratio', '-s', type=float, default=2.0)
 p.add_argument('--noise_level', '-n', type=int, choices=[0, 1, 2, 3],
                default=1)
 p.add_argument('--color', '-c', choices=['y', 'rgb'], default='rgb')
@@ -167,9 +167,9 @@ if __name__ == '__main__':
         src = Image.open(path)
         w, h = src.size[:2]
         if args.width != 0:
-            args.scale_factor = args.width / w
+            args.scale_ratio = args.width / w
         if args.height != 0:
-            args.scale_factor = args.height / h
+            args.scale_ratio = args.height / h
         icc_profile = src.info.get('icc_profile')
         basename = os.path.basename(path)
         outname, ext = os.path.splitext(basename)
@@ -178,7 +178,7 @@ if __name__ == '__main__':
             dst = src.copy()
             if 'noise_scale' in models:
                 outname += ('(noise%d_scale%.1fx)'
-                            % (args.noise_level, args.scale_factor))
+                            % (args.noise_level, args.scale_ratio))
                 dst = upscale_image(
                     dst, models['noise_scale'], args, models['alpha'])
             else:
@@ -186,7 +186,7 @@ if __name__ == '__main__':
                     outname += '(noise%d)' % args.noise_level
                     dst = denoise_image(dst, models['noise'], args)
                 if 'scale' in models:
-                    outname += '(scale%.1fx)' % args.scale_factor
+                    outname += '(scale%.1fx)' % args.scale_ratio
                     dst = upscale_image(dst, models['scale'], args)
 
             if args.model_dir is None:
