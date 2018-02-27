@@ -102,17 +102,6 @@ def pcacov(x):
     return ce, cv
 
 
-def to_image(data, ch, batch=False):
-    img = cuda.to_cpu(data)
-    if batch:
-        img = np.clip(img, 0, 1) * 255
-    if ch == 1:
-        return Image.fromarray(img[0].astype(np.uint8))
-    elif ch == 3:
-        img = img.transpose(1, 2, 0)
-        return Image.fromarray(img.astype(np.uint8))
-
-
 def psnr(y, t, max):
     xp = cuda.get_array_module(y)
     mse = xp.mean(xp.square(y - t))
