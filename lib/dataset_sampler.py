@@ -11,8 +11,8 @@ from lib.pairwise_transform import pairwise_transform
 
 class DatasetSampler(object):
 
-    def __init__(self, datalist, config):
-        self.datalist = datalist
+    def __init__(self, filelist, config):
+        self.filelist = filelist
         self.config = config
 
         self.worker = None
@@ -43,7 +43,7 @@ class DatasetSampler(object):
     def _init_process(self):
         self._queue = multiprocessing.Queue()
         self._finalized = multiprocessing.Event()
-        args = [self.datalist, self.config, self._queue, self._finalized]
+        args = [self.filelist, self.config, self._queue, self._finalized]
         self.worker = multiprocessing.Process(target=_worker, args=args)
         self.worker.daemon = True
         self.worker.start()
@@ -87,17 +87,17 @@ class DatasetSampler(object):
             iy.save(os.path.join(dir, header + '_y.png'))
 
 
-def _worker(datalist, cfg, queue, finalized):
-    sample_size = cfg.patches * len(datalist)
+def _worker(filelist, cfg, queue, finalized):
+    sample_size = cfg.patches * len(filelist)
     x = np.zeros(
         (sample_size, cfg.ch, cfg.in_size, cfg.in_size), dtype=np.uint8)
     y = np.zeros(
         (sample_size, cfg.ch, cfg.out_size, cfg.out_size), dtype=np.uint8)
 
-    for i in six.moves.range(len(datalist)):
+    for i in six.moves.range(len(filelist)):
         if finalized.is_set():
             break
-        img = iproc.read_image_rgb_uint8(datalist[i])
+        img = iproc.read_image_rgb_uint8(filelist[i])
         xc_batch, yc_batch = pairwise_transform(img, cfg)
         x[cfg.patches * i:cfg.patches * (i + 1)] = xc_batch[:]
         y[cfg.patches * i:cfg.patches * (i + 1)] = yc_batch[:]
