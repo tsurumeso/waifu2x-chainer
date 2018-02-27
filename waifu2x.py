@@ -67,8 +67,11 @@ def upscale_image(src, scale_model, cfg, alpha_model=None):
 
 def split_alpha(src, offset):
     alpha = None
+    if src.mode in ('L', 'RGB', 'P'):
+        if isinstance(src.info.get('transparency'), bytes):
+            src = src.convert('RGBA')
     rgb = src.convert('RGB')
-    if src.mode == 'LA' or src.mode == 'RGBA':
+    if src.mode in ('LA', 'RGBA'):
         six.print_('Splitting alpha channel...', end=' ', flush=True)
         alpha = src.split()[-1]
         rgb = iproc.alpha_make_border(rgb, alpha, offset)
@@ -176,7 +179,6 @@ if __name__ == '__main__':
             args.scale_ratio = args.width / w
         if args.height != 0:
             args.scale_ratio = args.height / h
-        icc_profile = src.info.get('icc_profile')
         basename = os.path.basename(path)
         outname, ext = os.path.splitext(basename)
         if ext.lower() in ['.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff']:
@@ -207,5 +209,6 @@ if __name__ == '__main__':
                     outpath = os.path.join(dirname, outname)
                 else:
                     outpath = args.output
-            dst.save(outpath, icc_profile=icc_profile)
+            dst.convert(src.mode).save(
+                outpath, icc_profile=src.info.get('icc_profile'))
             six.print_('Saved as \'%s\'' % outpath)
