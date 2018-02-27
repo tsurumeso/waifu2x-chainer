@@ -21,6 +21,8 @@ def denoise_image(src, model, cfg):
             dst, model, cfg.tta_level, cfg.block_size, cfg.batch_size)
     else:
         dst = reconstruct.image(dst, model, cfg.block_size, cfg.batch_size)
+    if model.inner_scale != 1:
+        dst = dst.resize((src.size[0], src.size[1]), Image.LANCZOS)
     six.print_('OK')
     if alpha is not None:
         dst.putalpha(alpha)
@@ -105,6 +107,10 @@ def load_models(args):
         model_name = ('anime_style_noise%d_%s.npz'
                       % (args.noise_level, args.color))
         model_path = os.path.join(model_dir, model_name)
+        if not os.path.exists(model_path):
+            model_name = ('anime_style_noise%d_scale_%s.npz'
+                          % (args.noise_level, args.color))
+            model_path = os.path.join(model_dir, model_name)
         models['noise'] = srcnn.archs[args.arch](ch)
         chainer.serializers.load_npz(model_path, models['noise'])
 
