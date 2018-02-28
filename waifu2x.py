@@ -197,11 +197,7 @@ if __name__ == '__main__':
                     outname += '(scale%.1fx)' % args.scale_ratio
                     dst = upscale_image(dst, models['scale'], args)
 
-            if args.model_dir is None:
-                outname += '(%s_%s).png' % (args.arch.lower(), args.color)
-            else:
-                outname += '(model_%s).png' % args.color
-
+            outname += '(%s_%s).png' % (args.arch.lower(), args.color)
             if os.path.isdir(args.output):
                 outpath = os.path.join(args.output, outname)
             else:
