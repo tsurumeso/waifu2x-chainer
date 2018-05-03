@@ -96,9 +96,7 @@ def jpeg(src, sampling_factor='1x1,1x1,1x1', quality=90):
 
 def pcacov(x):
     imcol = x.reshape(3, x.shape[0] * x.shape[1])
-    imcol = imcol - imcol.mean(axis=1)[:, np.newaxis]
-    cov = imcol.dot(imcol.T) / (imcol.shape[1] - 1)
-    ce, cv = np.linalg.eigh(cov)
+    ce, cv = np.linalg.eigh(np.cov(imcol))
     return ce, cv
 
 
@@ -109,10 +107,10 @@ def psnr(y, t, max):
     return psnr
 
 
-def clipped_psnr(y, t, max=1.0, clip=(0.0, 1.0)):
+def clipped_psnr(y, t, a_min=0., a_max=1.):
     xp = cuda.get_array_module(y)
-    y_c = xp.clip(y, clip[0], clip[1])
-    t_c = xp.clip(t, clip[0], clip[1])
+    y_c = xp.clip(y, a_min, a_max)
+    t_c = xp.clip(t, a_min, a_max)
     mse = xp.mean(xp.square(y_c - t_c))
-    psnr = 20 * xp.log10(max / xp.sqrt(mse))
+    psnr = 20 * xp.log10(a_max / xp.sqrt(mse))
     return psnr
