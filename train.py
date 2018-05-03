@@ -46,13 +46,14 @@ def valid_inner_epoch(model, data_queue, batch_size):
     xp = model.xp
     valid_x, valid_y = data_queue.get()
     perm = np.random.permutation(len(valid_x))
-    for i in six.moves.range(0, len(valid_x), batch_size):
-        local_perm = perm[i:i + batch_size]
-        batch_x = xp.array(valid_x[local_perm], dtype=np.float32) * scale
-        batch_y = xp.array(valid_y[local_perm], dtype=np.float32) * scale
-        pred = model(batch_x)
-        score = iproc.clipped_psnr(pred.data, batch_y)
-        sum_score += score * len(batch_x)
+    with chainer.no_backprop_mode():
+        for i in six.moves.range(0, len(valid_x), batch_size):
+            local_perm = perm[i:i + batch_size]
+            batch_x = xp.array(valid_x[local_perm], dtype=np.float32) * scale
+            batch_y = xp.array(valid_y[local_perm], dtype=np.float32) * scale
+            pred = model(batch_x)
+            score = iproc.clipped_psnr(pred.data, batch_y)
+            sum_score += score * len(batch_x)
     return sum_score / len(valid_x)
 
 
