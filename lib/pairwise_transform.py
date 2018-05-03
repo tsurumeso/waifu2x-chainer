@@ -176,12 +176,10 @@ def pairwise_transform(src, cfg):
             ycbcr_y = Image.fromarray(crop_y).convert('YCbCr')
             crop_x = np.array(ycbcr_x)[:, :, 0]
             crop_y = np.array(ycbcr_y)[top:bottom, top:bottom, 0]
-            patch_x[i] = crop_x.reshape(cfg.ch, cfg.in_size, cfg.in_size)
-            patch_y[i] = crop_y.reshape(cfg.ch, cfg.out_size, cfg.out_size)
+            patch_x[i] = crop_x[np.newaxis, :, :]
+            patch_y[i] = crop_y[np.newaxis, :, :]
         elif cfg.ch == 3:
             crop_y = crop_y[top:bottom, top:bottom, :]
-            crop_x = crop_x.transpose(2, 0, 1)
-            crop_y = crop_y.transpose(2, 0, 1)
-            patch_x[i] = crop_x.reshape(cfg.ch, cfg.in_size, cfg.in_size)
-            patch_y[i] = crop_y.reshape(cfg.ch, cfg.out_size, cfg.out_size)
+            patch_x[i] = crop_x.transpose(2, 0, 1)
+            patch_y[i] = crop_y.transpose(2, 0, 1)
     return patch_x, patch_y

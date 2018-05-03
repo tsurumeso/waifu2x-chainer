@@ -100,13 +100,6 @@ def pcacov(x):
     return ce, cv
 
 
-def psnr(y, t, max):
-    xp = cuda.get_array_module(y)
-    mse = xp.mean(xp.square(y - t))
-    psnr = 20 * xp.log10(max / xp.sqrt(mse))
-    return psnr
-
-
 def clipped_psnr(y, t, a_min=0., a_max=1.):
     xp = cuda.get_array_module(y)
     y_c = xp.clip(y, a_min, a_max)
