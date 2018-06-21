@@ -6,7 +6,7 @@ from lib import srcnn
 p = argparse.ArgumentParser(
     description='Chainer implementation of waifu2x model trainer')
 p.add_argument('--gpu', '-g', type=int, default=-1)
-p.add_argument('--seed', type=int, default=11)
+p.add_argument('--seed', '-s', type=int, default=11)
 p.add_argument('--dataset_dir', '-d', required=True)
 p.add_argument('--validation_rate', type=float, default=0.05)
 p.add_argument('--color', '-c', choices=['y', 'rgb'], default='rgb')
@@ -19,6 +19,7 @@ p.add_argument('--noise_level', '-n', type=int, choices=[0, 1, 2, 3],
                default=1)
 p.add_argument('--nr_rate', type=float, default=0.65)
 p.add_argument('--chroma_subsampling_rate', type=float, default=0.5)
+p.add_argument('--reduce_memory_usage', action='store_true')
 p.add_argument('--out_size', type=int, default=64)
 p.add_argument('--max_size', type=int, default=256)
 p.add_argument('--active_cropping_rate', type=float, default=0.5)
