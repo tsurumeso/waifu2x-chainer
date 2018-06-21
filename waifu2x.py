@@ -15,7 +15,8 @@ from lib import utils
 
 def denoise_image(cfg, src, model):
     dst, alpha = split_alpha(src, model.offset)
-    six.print_('Level %d denoising...' % cfg.noise_level, end=' ', flush=True)
+    six.print_('Level {} denoising...'.format(cfg.noise_level),
+               end=' ', flush=True)
     if cfg.tta:
         dst = reconstruct.image_tta(
             dst, model, cfg.tta_level, cfg.block_size, cfg.batch_size)
@@ -82,37 +83,37 @@ def split_alpha(src, offset):
 def load_models(cfg):
     ch = 3 if cfg.color == 'rgb' else 1
     if cfg.model_dir is None:
-        model_dir = 'models/%s' % cfg.arch.lower()
+        model_dir = 'models/{}'.format(cfg.arch.lower())
     else:
         model_dir = cfg.model_dir
 
     models = {}
     flag = False
     if cfg.method == 'noise_scale':
-        model_name = ('anime_style_noise%d_scale_%s.npz'
-                      % (cfg.noise_level, cfg.color))
+        model_name = 'anime_style_noise{}_scale_{}.npz'.format(
+            cfg.noise_level, cfg.color)
         model_path = os.path.join(model_dir, model_name)
         if os.path.exists(model_path):
             models['noise_scale'] = srcnn.archs[cfg.arch](ch)
             chainer.serializers.load_npz(model_path, models['noise_scale'])
-            alpha_model_name = 'anime_style_scale_%s.npz' % cfg.color
+            alpha_model_name = 'anime_style_scale_{}.npz'.format(cfg.color)
             alpha_model_path = os.path.join(model_dir, alpha_model_name)
             models['alpha'] = srcnn.archs[cfg.arch](ch)
             chainer.serializers.load_npz(alpha_model_path, models['alpha'])
         else:
             flag = True
     if cfg.method == 'scale' or flag:
-        model_name = 'anime_style_scale_%s.npz' % cfg.color
+        model_name = 'anime_style_scale_{}.npz'.format(cfg.color)
         model_path = os.path.join(model_dir, model_name)
         models['scale'] = srcnn.archs[cfg.arch](ch)
         chainer.serializers.load_npz(model_path, models['scale'])
     if cfg.method == 'noise' or flag:
-        model_name = ('anime_style_noise%d_%s.npz'
-                      % (cfg.noise_level, cfg.color))
+        model_name = 'anime_style_noise{}_{}.npz'.format(
+            cfg.noise_level, cfg.color)
         model_path = os.path.join(model_dir, model_name)
         if not os.path.exists(model_path):
-            model_name = ('anime_style_noise%d_scale_%s.npz'
-                          % (cfg.noise_level, cfg.color))
+            model_name = 'anime_style_noise{}_scale_{}.npz'.format(
+                cfg.noise_level, cfg.color)
             model_path = os.path.join(model_dir, model_name)
         models['noise'] = srcnn.archs[cfg.arch](ch)
         chainer.serializers.load_npz(model_path, models['noise'])
@@ -130,9 +131,7 @@ p.add_argument('--gpu', '-g', type=int, default=-1)
 p.add_argument('--input', '-i', default='images/small.png')
 p.add_argument('--output', '-o', default='./')
 p.add_argument('--arch', '-a',
-               choices=['VGG7', '0',
-                        'UpConv7', '1',
-                        'ResNet10', '2'],
+               choices=['VGG7', '0', 'UpConv7', '1', 'ResNet10', '2'],
                default='VGG7')
 p.add_argument('--model_dir', '-d', default=None)
 p.add_argument('--method', '-m', choices=['noise', 'scale', 'noise_scale'],
@@ -182,22 +181,22 @@ if __name__ == '__main__':
         basename = os.path.basename(path)
         outname, ext = os.path.splitext(basename)
         if ext.lower() in ['.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff']:
-            outname += ('_(tta%d)' % args.tta_level if args.tta else '_')
+            outname += '_(tta{})'.format(args.tta_level) if args.tta else '_'
             dst = src.copy()
             if 'noise_scale' in models:
-                outname += ('(noise%d_scale%.1fx)'
-                            % (args.noise_level, args.scale_ratio))
+                outname += '(noise{}_scale{:.1f}x)'.format(
+                    args.noise_level, args.scale_ratio)
                 dst = upscale_image(
                     args, dst, models['noise_scale'], models['alpha'])
             else:
                 if 'noise' in models:
-                    outname += '(noise%d)' % args.noise_level
+                    outname += '(noise{})'.format(args.noise_level)
                     dst = denoise_image(args, dst, models['noise'])
                 if 'scale' in models:
-                    outname += '(scale%.1fx)' % args.scale_ratio
+                    outname += '(scale{:.1f}x)'.format(args.scale_ratio)
                     dst = upscale_image(args, dst, models['scale'])
 
-            outname += '(%s_%s).png' % (args.arch.lower(), args.color)
+            outname += '({}_{}).png'.format(args.arch.lower(), args.color)
             if os.path.isdir(args.output):
                 outpath = os.path.join(args.output, outname)
             else:
@@ -207,4 +206,4 @@ if __name__ == '__main__':
                     outpath = args.output
             dst.convert(src.mode).save(
                 outpath, icc_profile=src.info.get('icc_profile'))
-            six.print_('Saved as \'%s\'' % outpath)
+            six.print_('Saved as \'{}\''.format(outpath))
