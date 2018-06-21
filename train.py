@@ -162,7 +162,8 @@ def train():
             start = time.time()
             train_loss = train_inner_epoch(
                 model, weight, optimizer, train_queue, args.batch_size)
-            train_queue.wait()
+            if args.reduce_memory_usage:
+                train_queue.wait()
             if train_loss < best_loss:
                 best_loss = train_loss
                 print('    * best loss on train dataset: {:.6f}'.format(
