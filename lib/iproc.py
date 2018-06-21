@@ -8,8 +8,8 @@ import numpy as np
 from PIL import Image
 
 try:
-    from wand.image import Image as WandImage
-except(ModuleNotFoundError, ImportError):
+    import wand.image
+except ImportError:
     pass
 
 
@@ -60,12 +60,12 @@ def array_to_wand(src):
     with io.BytesIO() as buf:
         tmp = Image.fromarray(src).convert('RGB')
         tmp.save(buf, 'PNG', compress_level=0)
-        dst = WandImage(blob=buf.getvalue())
+        dst = wand.image.Image(blob=buf.getvalue())
     return dst
 
 
 def wand_to_array(src):
-    assert isinstance(src, WandImage)
+    assert isinstance(src, wand.image.Image)
     with io.BytesIO(src.make_blob('PNG')) as buf:
         tmp = Image.open(buf).convert('RGB')
         dst = np.array(tmp, dtype=np.uint8)
@@ -91,7 +91,7 @@ def jpeg(src, sampling_factor='1x1,1x1,1x1', quality=90):
     src.format = 'jpg'
     src.compression_quality = quality
     src.options['jpeg:sampling-factor'] = sampling_factor
-    return WandImage(blob=src.make_blob())
+    return wand.image.Image(blob=src.make_blob())
 
 
 def pcacov(x):
