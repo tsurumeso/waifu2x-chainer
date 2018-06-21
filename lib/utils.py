@@ -15,7 +15,7 @@ class Namespace(object):
     def __repr__(self):
         str = []
         for key in self.kwargs.keys():
-            str.append('%s=%s' % (key, self.kwargs[key]))
+            str.append('{}={}'.format(key, self.kwargs[key]))
         return ', '.join(str)
 
     def append(self, key, value):

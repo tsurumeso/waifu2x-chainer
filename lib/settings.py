@@ -11,9 +11,7 @@ p.add_argument('--dataset_dir', '-d', required=True)
 p.add_argument('--validation_rate', type=float, default=0.05)
 p.add_argument('--color', '-c', choices=['y', 'rgb'], default='rgb')
 p.add_argument('--arch', '-a',
-               choices=['VGG7', '0',
-                        'UpConv7', '1',
-                        'ResNet10', '2'],
+               choices=['VGG7', '0', 'UpConv7', '1', 'ResNet10', '2'],
                default='VGG7')
 p.add_argument('--method', '-m', choices=['noise', 'scale', 'noise_scale'],
                default='scale')

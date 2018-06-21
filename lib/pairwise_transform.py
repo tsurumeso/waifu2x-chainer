@@ -34,7 +34,7 @@ def _noise(src, p, level):
             dst = iproc.jpeg(dst, sampling_factor, random.randint(25, 55))
         return dst
     else:
-        raise ValueError('Unknown noise level: %d' % level)
+        raise ValueError('Unknown noise level: {}'.format(level))
 
 
 def noise(src, p, p_chroma, level):
@@ -102,8 +102,8 @@ def active_cropping(x, y, ly, size, scale, p, tries):
     if size % scale != 0:
         raise ValueError('crop_size % scale must be 0')
     if x.shape[0] * scale != y.shape[0] or x.shape[1] * scale != y.shape[1]:
-        raise ValueError('Scaled shape must be equal (%s, %s)'
-                         % (x.shape[:1], y.shape[:1]))
+        raise ValueError('Scaled shape must be equal ({}, {})'.format(
+            x.shape[:1], y.shape[:1]))
 
     size_x = size // scale
     if np.random.uniform() < p:

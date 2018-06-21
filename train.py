@@ -36,7 +36,7 @@ def train_inner_epoch(model, weight, optimizer, data_queue, batch_size):
         loss = clipped_weighted_huber_loss(pred, batch_y, weight)
         loss.backward()
         optimizer.update()
-        sum_loss += loss.data * len(batch_x)
+        sum_loss += float(loss.data) * len(batch_x)
     return sum_loss / len(train_x)
 
 
@@ -53,7 +53,7 @@ def valid_inner_epoch(model, data_queue, batch_size):
             batch_y = xp.array(valid_y[local_perm], dtype=np.float32) * scale
             pred = model(batch_x)
             score = iproc.clipped_psnr(pred.data, batch_y)
-            sum_score += score * len(batch_x)
+            sum_score += float(score) * len(batch_x)
     return sum_score / len(valid_x)
 
 
@@ -70,8 +70,8 @@ def get_config(base_args, model, train=True):
     else:
         max_size = 0
         coeff = (1 - base_args.validation_rate) / base_args.validation_rate
-        patches = int(
-            round(base_args.validation_crop_rate * coeff * base_args.patches))
+        patches = int(round(
+            base_args.validation_crop_rate * coeff * base_args.patches))
 
     config = {
         'ch': ch,
@@ -117,16 +117,14 @@ def train():
     print('* loading model...', end=' ')
     if args.model_name is None:
         if args.method == 'noise':
-            model_name = ('anime_style_noise%d_%s'
-                          % (args.noise_level, args.color))
+            model_name = 'anime_style_noise{}_'.format(args.noise_level)
         elif args.method == 'scale':
-            model_name = 'anime_style_scale_%s' % args.color
+            model_name = 'anime_style_scale_'
         elif args.method == 'noise_scale':
-            model_name = ('anime_style_noise%d_scale_%s'
-                          % (args.noise_level, args.color))
+            model_name = 'anime_style_noise{}_scale_'.format(args.noise_level)
     else:
         model_name = args.model_name.rstrip('.npz')
-    model_path = model_name + '.npz'
+    model_path = model_name + '{}.npz'.format(args.color)
     if not os.path.exists('epoch'):
         os.makedirs('epoch')
 
@@ -156,27 +154,28 @@ def train():
     best_score = 0
     best_loss = np.inf
     for epoch in range(0, args.epoch):
-        print('### epoch: %d ###' % epoch)
+        print('### epoch: {} ###'.format(epoch))
         train_queue.reload_switch(init=(epoch < args.epoch - 1))
         for inner_epoch in range(0, args.inner_epoch):
             best_count += 1
-            print('  # inner epoch: %d' % inner_epoch)
+            print('  # inner epoch: {}'.format(inner_epoch))
             start = time.time()
             train_loss = train_inner_epoch(
                 model, weight, optimizer, train_queue, args.batch_size)
             train_queue.wait()
             if train_loss < best_loss:
                 best_loss = train_loss
-                print('    * best loss on train dataset: %f' % train_loss)
+                print('    * best loss on train dataset: {:.6f}'.format(
+                    train_loss))
             valid_score = valid_inner_epoch(
                 model, valid_queue, args.batch_size)
             if valid_score > best_score:
                 best_count = 0
                 best_score = valid_score
-                print('    * best score on validation dataset: PSNR %f dB'
-                      % valid_score)
+                print('    * best score on validation dataset: PSNR {:.6f} dB'
+                      .format(valid_score))
                 best_model = model.copy().to_cpu()
-                epoch_path = 'epoch/%s_epoch%d.npz' % (model_name, epoch)
+                epoch_path = 'epoch/{}_epoch{}.npz'.format(model_name, epoch)
                 chainer.serializers.save_npz(model_path, best_model)
                 shutil.copy(model_path, epoch_path)
             if best_count >= args.lr_decay_interval:
@@ -185,8 +184,9 @@ def train():
                 if optimizer.alpha < args.lr_min:
                     optimizer.alpha = args.lr_min
                 else:
-                    print('    * learning rate decay: %f' % optimizer.alpha)
-            print('    * elapsed time: %f sec' % (time.time() - start))
+                    print('    * learning rate decay: {:.6f}'.format(
+                        optimizer.alpha))
+            print('    * elapsed time: {:.6f} sec'.format(time.time() - start))
 
 
 warnings.filterwarnings('ignore')
