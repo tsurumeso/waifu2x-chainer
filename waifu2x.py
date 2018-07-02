@@ -39,8 +39,8 @@ def upscale_image(cfg, src, scale_model, alpha_model=None):
         if i == 0 or alpha_model is None:
             model = scale_model
         if model.inner_scale == 1:
-            dst = iproc.scale2x(dst)  # Nearest neighbor 2x scaling
-            alpha = iproc.scale2x(alpha)  # Nearest neighbor 2x scaling
+            dst = iproc.nn_scaling(dst, 2)  # Nearest neighbor 2x scaling
+            alpha = iproc.nn_scaling(alpha, 2)  # Nearest neighbor 2x scaling
         if cfg.tta:
             dst = reconstruct.image_tta(
                 dst, model, cfg.tta_level, cfg.block_size, cfg.batch_size)

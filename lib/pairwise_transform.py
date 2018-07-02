@@ -47,7 +47,7 @@ def noise(src, p, p_chroma, level):
         return src
 
 
-def scale(src, filters, bmin, bmax, upsampling):
+def scale(src, filters, bmin, bmax, upscaling):
     # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
     # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
     # 'lanczos2', 'sinc'
@@ -56,13 +56,13 @@ def scale(src, filters, bmin, bmax, upsampling):
     rand = random.randint(0, len(filters) - 1)
     with iproc.array_to_wand(src) as tmp:
         tmp.resize(w // 2, h // 2, filters[rand], blur)
-        if upsampling:
+        if upscaling:
             tmp.resize(w, h, 'box')
         dst = iproc.wand_to_array(tmp)
     return dst
 
 
-def noise_scale(src, filters, bmin, bmax, upsampling, p, p_chroma, level):
+def noise_scale(src, filters, bmin, bmax, upscaling, p, p_chroma, level):
     # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
     # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
     # 'lanczos2', 'sinc'
@@ -73,7 +73,7 @@ def noise_scale(src, filters, bmin, bmax, upsampling, p, p_chroma, level):
         tmp.resize(w // 2, h // 2, filters[rand], blur)
         if np.random.uniform() < p:
             tmp = _noise(tmp, p_chroma, level)
-        if upsampling:
+        if upscaling:
             tmp.resize(w, h, 'box')
         dst = iproc.wand_to_array(tmp)
     return dst
@@ -133,7 +133,6 @@ def active_cropping(x, y, ly, size, scale, p, tries):
 def pairwise_transform(src, cfg):
     unstable_region_offset_x = 8
     unstable_region_offset_y = unstable_region_offset_x * cfg.inner_scale
-    upsampling = (cfg.inner_scale == 1)
     top = cfg.offset
     bottom = cfg.crop_size - top
     y = preprocess(src, cfg)
@@ -141,7 +140,7 @@ def pairwise_transform(src, cfg):
     if cfg.method == 'scale':
         x = scale(
             y, cfg.downsampling_filters,
-            cfg.resize_blur_min, cfg.resize_blur_max, upsampling)
+            cfg.resize_blur_min, cfg.resize_blur_max, cfg.inner_scale == 1)
     elif cfg.method == 'noise':
         if cfg.inner_scale != 1:
             raise ValueError('inner_scale must be 1')
@@ -151,7 +150,7 @@ def pairwise_transform(src, cfg):
             raise ValueError('inner_scale must be > 1')
         x = noise_scale(
             y, cfg.downsampling_filters,
-            cfg.resize_blur_min, cfg.resize_blur_max, upsampling,
+            cfg.resize_blur_min, cfg.resize_blur_max, False,
             cfg.nr_rate, cfg.chroma_subsampling_rate, cfg.noise_level)
 
     y = y[unstable_region_offset_y:y.shape[0] - unstable_region_offset_y,
@@ -160,7 +159,7 @@ def pairwise_transform(src, cfg):
           unstable_region_offset_x:x.shape[1] - unstable_region_offset_x]
     lowres_y = y.copy()
     if cfg.crop_size != cfg.in_size:
-        lowres_y = iproc.scale(y, 0.5)
+        lowres_y = iproc.nn_scaling(y, 0.5)
 
     patch_x = np.zeros(
         (cfg.patches, cfg.ch, cfg.in_size, cfg.in_size), dtype=np.uint8)
