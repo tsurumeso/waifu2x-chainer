@@ -1,8 +1,13 @@
 *~
 *.pyc
+*.caffemodel
+*.prototxt
+*.onnx
+
 /*.bat
 /*.sh
 /*.npz
 /*.png
+
 epoch/
 .vscode/
