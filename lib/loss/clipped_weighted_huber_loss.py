@@ -1,7 +1,8 @@
+import numpy
+
 from chainer import cuda
 from chainer import function
 from chainer.utils import type_check
-import numpy
 
 
 class ClippedWeightedHuberLoss(function.Function):
@@ -25,17 +26,22 @@ class ClippedWeightedHuberLoss(function.Function):
         x0_c = xp.clip(x0, self.clip[0], self.clip[1])
         x1_c = xp.clip(x1, self.clip[0], self.clip[1])
         self.diff = (x0_c - x1_c) * self.weight
-        y = xp.square(self.diff)
-        mask = y > (self.delta ** 2)
-        y -= mask * xp.square(abs(self.diff) - self.delta)
-        y *= 0.5
-        return xp.array(y.sum() / y.dtype.type(y.size), dtype=y.dtype),
 
-    def backward(self, inputs, gy):
+        diff = xp.abs(self.diff)
+        y = xp.square(diff)
+        diff -= diff.dtype.type(self.delta)
+        xp.maximum(diff, 0, dtype=diff.dtype, out=diff)
+        xp.square(diff, out=diff)
+        y = (y - diff) * 0.5
+
+        return y.mean(),
+
+    def backward(self, inputs, grad_outputs):
         xp = cuda.get_array_module(*inputs)
-        mask = xp.abs(self.diff) <= self.delta
-        coeff = gy[0] * gy[0].dtype.type(1. / self.diff.size)
-        gx = coeff * xp.where(mask, self.diff, self.delta * xp.sign(self.diff))
+        gy, = grad_outputs
+        delta = float(self.delta)
+        gx = gy * xp.clip(self.diff, -delta, delta)
+
         return gx, -gx
 
 
