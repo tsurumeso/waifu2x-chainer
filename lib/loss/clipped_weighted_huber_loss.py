@@ -27,12 +27,12 @@ class ClippedWeightedHuberLoss(function.Function):
         x1_c = xp.clip(x1, self.clip[0], self.clip[1])
         self.diff = (x0_c - x1_c) * self.weight
 
-        diff = xp.abs(self.diff)
-        y = xp.square(diff)
-        diff -= diff.dtype.type(self.delta)
-        xp.maximum(diff, 0, dtype=diff.dtype, out=diff)
-        xp.square(diff, out=diff)
-        y = (y - diff) * 0.5
+        abs_diff = xp.abs(self.diff)
+        y = xp.square(abs_diff)
+        abs_diff -= abs_diff.dtype.type(self.delta)
+        xp.maximum(abs_diff, 0, dtype=abs_diff.dtype, out=abs_diff)
+        xp.square(abs_diff, out=abs_diff)
+        y = (y - abs_diff) * 0.5
 
         return y.mean(),
 
