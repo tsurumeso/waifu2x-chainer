@@ -57,43 +57,42 @@ def valid_inner_epoch(model, data_queue, batch_size):
     return sum_score / len(valid_x)
 
 
-def get_config(base_args, model, train=True):
+def get_config(base, model, train=True):
     ch = model.ch
     offset = model.offset
     inner_scale = model.inner_scale
-    crop_size = base_args.out_size + offset * 2
+    crop_size = base.out_size + offset * 2
     in_size = crop_size // inner_scale
 
     if train:
-        max_size = base_args.max_size
-        patches = base_args.patches
+        max_size = base.max_size
+        patches = base.patches
     else:
         max_size = 0
-        coeff = (1 - base_args.validation_rate) / base_args.validation_rate
-        patches = int(round(
-            base_args.validation_crop_rate * coeff * base_args.patches))
+        coeff = (1 - base.validation_rate) / base.validation_rate
+        patches = int(round(base.validation_crop_rate * coeff * base.patches))
 
     config = {
         'ch': ch,
-        'method': base_args.method,
-        'noise_level': base_args.noise_level,
-        'nr_rate': base_args.nr_rate,
-        'chroma_subsampling_rate': base_args.chroma_subsampling_rate,
+        'method': base.method,
+        'noise_level': base.noise_level,
+        'nr_rate': base.nr_rate,
+        'chroma_subsampling_rate': base.chroma_subsampling_rate,
         'offset': offset,
         'crop_size': crop_size,
         'in_size': in_size,
-        'out_size': base_args.out_size,
+        'out_size': base.out_size,
         'inner_scale': inner_scale,
         'max_size': max_size,
-        'active_cropping_rate': base_args.active_cropping_rate,
-        'active_cropping_tries': base_args.active_cropping_tries,
-        'random_half_rate': base_args.random_half_rate,
-        'random_color_noise_rate': base_args.random_color_noise_rate,
-        'random_unsharp_mask_rate': base_args.random_unsharp_mask_rate,
+        'active_cropping_rate': base.active_cropping_rate,
+        'active_cropping_tries': base.active_cropping_tries,
+        'random_half_rate': base.random_half_rate,
+        'random_color_noise_rate': base.random_color_noise_rate,
+        'random_unsharp_mask_rate': base.random_unsharp_mask_rate,
         'patches': patches,
-        'downsampling_filters': base_args.downsampling_filters,
-        'resize_blur_min': base_args.resize_blur_min,
-        'resize_blur_max': base_args.resize_blur_max,
+        'downsampling_filters': base.downsampling_filters,
+        'resize_blur_min': base.resize_blur_min,
+        'resize_blur_max': base.resize_blur_max,
     }
     return utils.Namespace(config)
 
@@ -122,13 +121,16 @@ def train():
             model_name = 'anime_style_scale_'
         elif args.method == 'noise_scale':
             model_name = 'anime_style_noise{}_scale_'.format(args.noise_level)
+        model_path = model_name + '{}.npz'.format(args.color)
     else:
         model_name = args.model_name.rstrip('.npz')
-    model_path = model_name + '{}.npz'.format(args.color)
+        model_path = model_name + '.npz'
     if not os.path.exists('epoch'):
         os.makedirs('epoch')
 
     model = srcnn.archs[args.arch](ch)
+    if model.offset % model.inner_scale != 0:
+        raise ValueError('offset %% inner_scale must be 0.')
     if args.finetune is not None:
         chainer.serializers.load_npz(args.finetune, model)
 

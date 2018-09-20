@@ -48,9 +48,6 @@ def noise(src, p, p_chroma, level):
 
 
 def scale(src, filters, bmin, bmax, upscaling):
-    # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
-    # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
-    # 'lanczos2', 'sinc'
     h, w = src.shape[:2]
     blur = np.random.uniform(bmin, bmax)
     rand = random.randint(0, len(filters) - 1)
@@ -63,9 +60,6 @@ def scale(src, filters, bmin, bmax, upscaling):
 
 
 def noise_scale(src, filters, bmin, bmax, upscaling, p, p_chroma, level):
-    # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
-    # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
-    # 'lanczos2', 'sinc'
     h, w = src.shape[:2]
     blur = np.random.uniform(bmin, bmax)
     rand = random.randint(0, len(filters) - 1)

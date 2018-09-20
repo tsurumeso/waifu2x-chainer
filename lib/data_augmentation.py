@@ -45,9 +45,6 @@ def flip(src):
 
 
 def half(src, p):
-    # 'box', 'triangle', 'hermite', 'hanning', 'hamming', 'blackman',
-    # 'gaussian', 'quadratic', 'cubic', 'catrom', 'mitchell', 'lanczos',
-    # 'sinc'
     if np.random.uniform() < p:
         filters = ('box', 'box', 'blackman', 'cubic', 'lanczos')
         rand = random.randint(0, len(filters) - 1)
