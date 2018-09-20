@@ -1,5 +1,6 @@
 import argparse
 import os
+import time
 
 import chainer
 from chainer import cuda
@@ -183,6 +184,7 @@ if __name__ == '__main__':
         if ext.lower() in ['.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff']:
             outname += '_(tta{})'.format(args.tta_level) if args.tta else '_'
             dst = src.copy()
+            start = time.time()
             if 'noise_scale' in models:
                 outname += '(noise{}_scale{:.1f}x)'.format(
                     args.noise_level, args.scale_ratio)
@@ -195,6 +197,7 @@ if __name__ == '__main__':
                 if 'scale' in models:
                     outname += '(scale{:.1f}x)'.format(args.scale_ratio)
                     dst = upscale_image(args, dst, models['scale'])
+            print('Elapsed time: {:.6f} sec'.format(time.time() - start))
 
             outname += '({}_{}).png'.format(args.arch.lower(), args.color)
             if os.path.isdir(args.output):
