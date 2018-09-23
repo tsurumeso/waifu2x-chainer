@@ -120,11 +120,11 @@ class UpsampleBlock(chainer.Chain):
 
     def __init__(self, in_channels, out_channels, r=2, slope=0.1):
         super(UpsampleBlock, self).__init__()
-        mid_channels = in_channels // r ** 2
+        mid_channels = in_channels * r ** 2
         with self.init_scope():
-            self.conv1 = L.Convolution2D(in_channels, in_channels, 3)
-            self.conv2 = L.Convolution2D(mid_channels, mid_channels, 3)
-            self.conv3 = L.Convolution2D(mid_channels, out_channels, 3)
+            self.conv1 = L.Convolution2D(in_channels, mid_channels, 3)
+            self.conv2 = L.Convolution2D(in_channels, in_channels, 3)
+            self.conv3 = L.Convolution2D(in_channels, out_channels, 3)
 
         self.r = r
         self.slope = slope
