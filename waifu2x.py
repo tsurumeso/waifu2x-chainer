@@ -132,8 +132,7 @@ p.add_argument('--gpu', '-g', type=int, default=-1)
 p.add_argument('--input', '-i', default='images/small.png')
 p.add_argument('--output', '-o', default='./')
 p.add_argument('--arch', '-a',
-               choices=['VGG7', '0', 'UpConv7', '1',
-                        'ResNet10', '2', 'EDSR10', '3'],
+               choices=['VGG7', '0', 'UpConv7', '1', 'ResNet10', '2'],
                default='VGG7')
 p.add_argument('--model_dir', '-d', default=None)
 p.add_argument('--method', '-m', choices=['noise', 'scale', 'noise_scale'],

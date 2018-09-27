@@ -85,37 +85,6 @@ class ResBlock(chainer.Chain):
         return h + x
 
 
-class ResNet10(chainer.Chain):
-
-    def __init__(self, ch):
-        super(ResNet10, self).__init__()
-        with self.init_scope():
-            self.conv_pre = L.Convolution2D(ch, 64, 3)
-            self.res1 = ResBlock(64, 64)
-            self.res2 = ResBlock(64, 64)
-            self.res3 = ResBlock(64, 64)
-            self.res4 = ResBlock(64, 64)
-            self.res5 = ResBlock(64, 64)
-            self.conv_bridge = L.Convolution2D(64, 64, 3)
-            self.conv_post = L.Convolution2D(64, ch, 3)
-
-        self.ch = ch
-        self.offset = 13
-        self.inner_scale = 1
-
-    def __call__(self, x):
-        h = skip = F.leaky_relu(self.conv_pre(x), 0.1)
-        h = self.res1(h)
-        h = self.res2(h)
-        h = self.res3(h)
-        h = self.res4(h)
-        h = self.res5(h)
-        h = F.leaky_relu(self.conv_bridge(h), 0.1)
-        h = h + skip[:, :, 11:-11, 11:-11]
-        h = self.conv_post(h)
-        return h
-
-
 class UpsampleBlock(chainer.Chain):
 
     def __init__(self, in_channels, out_channels, r=2, slope=0.1):
@@ -136,10 +105,10 @@ class UpsampleBlock(chainer.Chain):
         return h
 
 
-class EDSR10(chainer.Chain):
+class ResNet10(chainer.Chain):
 
     def __init__(self, ch):
-        super(EDSR10, self).__init__()
+        super(ResNet10, self).__init__()
         with self.init_scope():
             self.conv_pre = L.Convolution2D(ch, 64, 3)
             self.res1 = ResBlock(64, 64)
@@ -171,12 +140,10 @@ archs = {
     'VGG7': VGG7,
     'UpConv7': UpConv7,
     'ResNet10': ResNet10,
-    'EDSR10': EDSR10,
 }
 
 table = {
     '0': 'VGG7',
     '1': 'UpConv7',
     '2': 'ResNet10',
-    '3': 'EDSR10',
 }
