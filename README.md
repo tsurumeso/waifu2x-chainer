@@ -39,31 +39,31 @@ python waifu2x.py
 
 ## Usage
 
-Specifing an output file name with --output (-o) option, the file extension must be PNG.
+Omit --gpu (-g) option, if you want this program to run on CPU. Note that specifing an output file name with --output (-o) option, the file extension must be PNG.
 
 ### Noise reduction
 ```
-python waifu2x.py --method noise --noise_level 1 --input path/to/image/or/directory --arch VGG7
+python waifu2x.py --method noise --noise_level 1 --input path/to/image/or/directory --arch VGG7 --gpu 0
 
-python waifu2x.py -m noise -n 0 -i path/to/image/or/directory -a 0
-python waifu2x.py -m noise -n 2 -i path/to/image/or/directory -a 0
-python waifu2x.py -m noise -n 3 -i path/to/image/or/directory -a 0
+python waifu2x.py -m noise -n 0 -i path/to/image/or/directory -a 0 -g 0
+python waifu2x.py -m noise -n 2 -i path/to/image/or/directory -a 0 -g 0
+python waifu2x.py -m noise -n 3 -i path/to/image/or/directory -a 0 -g 0
 ```
 
 ### 2x upscaling
 ```
-python waifu2x.py --method scale --input path/to/image/or/directory --arch VGG7
+python waifu2x.py --method scale --input path/to/image/or/directory --arch VGG7 --gpu 0
 
-python waifu2x.py -m scale -i path/to/image/or/directory -a 0
+python waifu2x.py -m scale -i path/to/image/or/directory -a 0 -g 0
 ```
 
 ### Noise reduction + 2x upscaling
 ```
-python waifu2x.py --method noise_scale --noise_level 1 --input path/to/image/or/directory --arch VGG7
+python waifu2x.py --method noise_scale --noise_level 1 --input path/to/image/or/directory --arch VGG7 --gpu 0
 
-python waifu2x.py -m noise_scale -n 0 -i path/to/image/or/directory -a 0
-python waifu2x.py -m noise_scale -n 2 -i path/to/image/or/directory -a 0
-python waifu2x.py -m noise_scale -n 3 -i path/to/image/or/directory -a 0
+python waifu2x.py -m noise_scale -n 0 -i path/to/image/or/directory -a 0 -g 0
+python waifu2x.py -m noise_scale -n 2 -i path/to/image/or/directory -a 0 -g 0
+python waifu2x.py -m noise_scale -n 3 -i path/to/image/or/directory -a 0 -g 0
 ```
 
 ## Train your own model
