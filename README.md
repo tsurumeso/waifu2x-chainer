@@ -39,7 +39,7 @@ python waifu2x.py
 
 ## Usage
 
-Omit --gpu (-g) option, if you want this program to run on CPU. Note that specifing an output file name with --output (-o) option, the file extension must be PNG.
+Omitting --gpu (-g) option run on CPU.
 
 ### Noise reduction
 ```
