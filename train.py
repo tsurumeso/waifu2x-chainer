@@ -116,12 +116,12 @@ def train():
     print('* loading model...', end=' ')
     if args.model_name is None:
         if args.method == 'noise':
-            model_name = 'anime_style_noise{}_'.format(args.noise_level)
+            model_name = 'anime_style_noise{}'.format(args.noise_level)
         elif args.method == 'scale':
-            model_name = 'anime_style_scale_'
+            model_name = 'anime_style_scale'
         elif args.method == 'noise_scale':
-            model_name = 'anime_style_noise{}_scale_'.format(args.noise_level)
-        model_path = model_name + '{}.npz'.format(args.color)
+            model_name = 'anime_style_noise{}_scale'.format(args.noise_level)
+        model_path = '{}_{}.npz'.format(model_name, args.color)
     else:
         model_name = args.model_name.rstrip('.npz')
         model_path = model_name + '.npz'
@@ -131,6 +131,8 @@ def train():
     model = srcnn.archs[args.arch](ch)
     if model.offset % model.inner_scale != 0:
         raise ValueError('offset %% inner_scale must be 0.')
+    elif model.inner_scale != 1 and model.inner_scale % 2 != 0:
+        raise ValueError('inner_scale must be 1 or multiple of 2.')
     if args.finetune is not None:
         chainer.serializers.load_npz(args.finetune, model)
 

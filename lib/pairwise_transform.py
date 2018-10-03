@@ -153,7 +153,7 @@ def pairwise_transform(src, cfg):
           unstable_region_offset_x:x.shape[1] - unstable_region_offset_x]
     lowres_y = y.copy()
     if cfg.crop_size != cfg.in_size:
-        lowres_y = iproc.nn_scaling(y, 0.5)
+        lowres_y = iproc.nn_scaling(y, 1 / cfg.inner_scale)
 
     patch_x = np.zeros(
         (cfg.patches, cfg.ch, cfg.in_size, cfg.in_size), dtype=np.uint8)
