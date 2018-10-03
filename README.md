@@ -13,6 +13,7 @@ Note that the training procedure of waifu2x-chainer may be slightly different fr
 
   - Chainer
   - Cupy (for GPU support)
+  - Matplotlib (for benchmark)
   - ONNX-Chainer (for ONNX model export)
   - Pillow
   - Wand (for training)
