@@ -7,8 +7,8 @@ import time
 
 import chainer
 from chainer import cuda
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from PIL import Image
 import six
 
@@ -92,7 +92,7 @@ def load_models(cfg):
     return models
 
 
-def benchmark(models, filelist, quality):
+def benchmark(models, filelist, sampling_factor, quality):
     scores = []
     for path in filelist:
         basename = os.path.basename(path)
@@ -151,11 +151,10 @@ if __name__ == '__main__':
     else:
         filelist = [args.input]
 
+    qualities = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
     sampling_factor = '1x1,1x1,1x1'
     if args.chroma_subsampling:
         sampling_factor = '2x2,1x1,1x1'
-
-    qualities = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 
     arch_scores = {}
     for arch in srcnn.table.values():
@@ -166,22 +165,28 @@ if __name__ == '__main__':
         for quality in qualities:
             print(arch, quality)
             start = time.time()
-            score, std = benchmark(models, filelist, quality)
+            score, sem = benchmark(models, filelist, sampling_factor, quality)
             scores.append(score)
-            sems.append(std)
+            sems.append(sem)
             print('Elapsed time: {:.6f} sec'.format(time.time() - start))
         arch_scores[arch] = [scores, sems]
 
     plt.rcParams['xtick.direction'] = 'out'
     plt.rcParams['ytick.direction'] = 'out'
-    plt.rcParams['font.size'] = 14
-    plt.rcParams['legend.fontsize'] = 14
+    plt.rcParams['font.size'] = 12
+    plt.rcParams['legend.fontsize'] = 12
 
+    title = '{} '.format(args.method)
+    title += 'noise{} {} '.format(
+        args.noise_level, sampling_factor) if 'noise' in args.method else ''
+    title += 'tta{}'.format(args.tta_level) if args.tta else ''
+    plt.title(title)
     plt.xlabel('JPEG quality')
     plt.ylabel('PSNR [dB]')
-    plt.ylim(25, 40)
+    plt.ylim(20, 40)
     plt.xticks([20, 40, 60, 80, 100])
-    plt.yticks([25, 30, 35, 40])
+    plt.yticks([20, 25, 30, 35])
+    plt.grid(which='major', color='gray', linestyle='--')
     plt.gca().spines['right'].set_visible(False)
     plt.gca().spines['top'].set_visible(False)
     plt.gca().yaxis.set_ticks_position('left')
@@ -189,6 +194,5 @@ if __name__ == '__main__':
     for key, value in arch_scores.items():
         plt.errorbar(qualities, value[0], yerr=value[1],
                      fmt='o-', capsize=3, label=key)
-    with plt.style.context('seaborn-dark'):
-        plt.legend()
+    plt.legend(edgecolor='white')
     plt.show()
