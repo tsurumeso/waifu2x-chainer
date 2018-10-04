@@ -37,26 +37,18 @@ def denoise_image(cfg, src, model):
 
 def upscale_image(cfg, src, scale_model, alpha_model=None):
     dst = src.copy()
-    log_scale = np.log2(cfg.scale_ratio)
-    for i in range(int(np.ceil(log_scale))):
-        six.print_('2.0x upscaling...', end=' ', flush=True)
-        model = alpha_model
-        if i == 0 or alpha_model is None:
-            model = scale_model
-        if model.inner_scale == 1:
-            dst = iproc.nn_scaling(dst, 2)  # Nearest neighbor 2x scaling
-        if cfg.tta:
-            dst = reconstruct.image_tta(
-                dst, model, cfg.tta_level, cfg.block_size, cfg.batch_size)
-        else:
-            dst = reconstruct.image(dst, model, cfg.block_size, cfg.batch_size)
-        six.print_('OK')
-    dst_w = int(np.round(src.size[0] * cfg.scale_ratio))
-    dst_h = int(np.round(src.size[1] * cfg.scale_ratio))
-    if np.round(log_scale % 1.0, 6) != 0 or log_scale <= 0:
-        six.print_('Resizing...', end=' ', flush=True)
-        dst = dst.resize((dst_w, dst_h), Image.LANCZOS)
-        six.print_('OK')
+    six.print_('2.0x upscaling...', end=' ', flush=True)
+    model = alpha_model
+    if alpha_model is None:
+        model = scale_model
+    if model.inner_scale == 1:
+        dst = iproc.nn_scaling(dst, 2)  # Nearest neighbor 2x scaling
+    if cfg.tta:
+        dst = reconstruct.image_tta(
+            dst, model, cfg.tta_level, cfg.block_size, cfg.batch_size)
+    else:
+        dst = reconstruct.image(dst, model, cfg.block_size, cfg.batch_size)
+    six.print_('OK')
     return dst
 
 
@@ -136,7 +128,6 @@ p.add_argument('--input', '-i', default='images/small.png')
 p.add_argument('--arch', '-a', default='')
 p.add_argument('--method', '-m', choices=['scale', 'noise_scale'],
                default='scale')
-p.add_argument('--scale_ratio', '-s', type=float, default=2.0)
 p.add_argument('--noise_level', '-n', type=int, choices=[0, 1, 2, 3],
                default=1)
 p.add_argument('--color', '-c', choices=['y', 'rgb'], default='rgb')
