@@ -15,7 +15,7 @@ from lib import utils
 
 
 def denoise_image(cfg, src, model):
-    dst, alpha = split_alpha(src, model.offset)
+    dst, alpha = split_alpha(src, model)
     six.print_('Level {} denoising...'.format(cfg.noise_level),
                end=' ', flush=True)
     if cfg.tta:
@@ -32,7 +32,7 @@ def denoise_image(cfg, src, model):
 
 
 def upscale_image(cfg, src, scale_model, alpha_model=None):
-    dst, alpha = split_alpha(src, scale_model.offset)
+    dst, alpha = split_alpha(src, scale_model)
     log_scale = np.log2(cfg.scale_ratio)
     for i in range(int(np.ceil(log_scale))):
         six.print_('2.0x upscaling...', end=' ', flush=True)
@@ -67,7 +67,7 @@ def upscale_image(cfg, src, scale_model, alpha_model=None):
     return dst
 
 
-def split_alpha(src, offset):
+def split_alpha(src, model):
     alpha = None
     if src.mode in ('L', 'RGB', 'P'):
         if isinstance(src.info.get('transparency'), bytes):
@@ -76,7 +76,7 @@ def split_alpha(src, offset):
     if src.mode in ('LA', 'RGBA'):
         six.print_('Splitting alpha channel...', end=' ', flush=True)
         alpha = src.split()[-1]
-        rgb = iproc.alpha_make_border(rgb, alpha, offset)
+        rgb = iproc.alpha_make_border(rgb, alpha, model)
         six.print_('OK')
     return rgb, alpha
 

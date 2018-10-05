@@ -13,31 +13,34 @@ except ImportError:
     pass
 
 
-def alpha_make_border(rgb, alpha, offset):
+def alpha_make_border(rgb, alpha, model):
+    xp = model.xp
     sum2d = L.Convolution2D(1, 1, 3, 1, 1, nobias=True)
-    sum2d.W.data = np.ones((1, 1, 3, 3))
+    if xp == cuda.cupy:
+        sum2d.to_gpu()
+    sum2d.W.data = xp.ones((1, 1, 3, 3))
 
-    mask = np.array(alpha, dtype=np.float32)
+    mask = xp.array(alpha, dtype=xp.float32)
     mask[mask > 0] = 1
-    mask_nega = np.abs(mask - 1).astype(np.uint8) == 1
+    mask_nega = xp.abs(mask - 1).astype(xp.uint8) == 1
     eps = 1.0e-7
 
-    rgb = np.array(rgb, dtype=np.float32).transpose(2, 0, 1)
+    rgb = xp.array(rgb, dtype=xp.float32).transpose(2, 0, 1)
     rgb[0][mask_nega] = 0
     rgb[1][mask_nega] = 0
     rgb[2][mask_nega] = 0
 
     with chainer.no_backprop_mode():
-        for _ in range(offset):
-            mask_weight = sum2d(mask[np.newaxis, np.newaxis, :, :]).data[0, 0]
+        for _ in range(model.offset):
+            mask_weight = sum2d(mask[xp.newaxis, xp.newaxis, :, :]).data[0, 0]
             for i in range(3):
-                border = sum2d(rgb[i][np.newaxis, np.newaxis, :, :]).data[0, 0]
+                border = sum2d(rgb[i][xp.newaxis, xp.newaxis, :, :]).data[0, 0]
                 border /= (mask_weight + eps)
                 rgb[i][mask_nega] = border[mask_nega]
             mask = mask_weight
             mask[mask > 0] = 1
-            mask_nega = np.abs(mask - 1).astype(np.uint8) == 1
-    rgb = np.clip(rgb, 0, 255)
+            mask_nega = xp.abs(mask - 1).astype(xp.uint8) == 1
+    rgb = cuda.to_cpu(xp.clip(rgb, 0, 255))
     return Image.fromarray(rgb.transpose(1, 2, 0).astype(np.uint8))
 
 
