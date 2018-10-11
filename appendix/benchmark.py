@@ -135,8 +135,8 @@ p.add_argument('--tta', '-t', action='store_true')
 p.add_argument('--tta_level', '-T', type=int, choices=[2, 4, 8], default=8)
 p.add_argument('--batch_size', '-b', type=int, default=8)
 p.add_argument('--block_size', '-l', type=int, default=64)
-p.add_argument('--chroma_subsampling', action='store_true')
-p.add_argument('--downsampling_filter', default='box')
+p.add_argument('--chroma_subsampling', '-j', action='store_true')
+p.add_argument('--downsampling_filter', '-d', default='box')
 
 args = p.parse_args()
 if args.arch in srcnn.table:
