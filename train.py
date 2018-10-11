@@ -1,5 +1,6 @@
 from __future__ import division
 from __future__ import print_function
+import argparse
 import os
 import shutil
 import time
@@ -17,7 +18,6 @@ from lib import utils
 
 from lib.dataset_sampler import DatasetSampler
 from lib.loss import clipped_weighted_huber_loss
-from lib.settings import args
 
 
 def train_inner_epoch(model, weight, optimizer, data_queue, batch_size):
@@ -57,47 +57,54 @@ def valid_inner_epoch(model, data_queue, batch_size):
     return sum_score / len(valid_x)
 
 
-def get_config(base, model, train=True):
-    ch = model.ch
-    offset = model.offset
-    inner_scale = model.inner_scale
-    crop_size = base.out_size + offset * 2
-    in_size = crop_size // inner_scale
+p = argparse.ArgumentParser(
+    description='Chainer implementation of waifu2x model trainer')
+p.add_argument('--gpu', '-g', type=int, default=-1)
+p.add_argument('--seed', '-s', type=int, default=11)
+p.add_argument('--dataset_dir', '-d', required=True)
+p.add_argument('--validation_rate', type=float, default=0.05)
+p.add_argument('--color', '-c', choices=['y', 'rgb'], default='rgb')
+p.add_argument('--arch', '-a',
+               choices=['VGG7', '0', 'UpConv7', '1',
+                        'ResNet10', '2', 'UpResNet10', '3'],
+               default='VGG7')
+p.add_argument('--method', '-m', choices=['noise', 'scale', 'noise_scale'],
+               default='scale')
+p.add_argument('--noise_level', '-n', type=int, choices=[0, 1, 2, 3],
+               default=1)
+p.add_argument('--nr_rate', type=float, default=0.65)
+p.add_argument('--chroma_subsampling_rate', type=float, default=0.5)
+p.add_argument('--reduce_memory_usage', action='store_true')
+p.add_argument('--out_size', type=int, default=64)
+p.add_argument('--max_size', type=int, default=256)
+p.add_argument('--active_cropping_rate', type=float, default=0.5)
+p.add_argument('--active_cropping_tries', type=int, default=10)
+p.add_argument('--random_half_rate', type=float, default=0.0)
+p.add_argument('--random_color_noise_rate', type=float, default=0.0)
+p.add_argument('--random_unsharp_mask_rate', type=float, default=0.0)
+p.add_argument('--learning_rate', type=float, default=0.00025)
+p.add_argument('--lr_min', type=float, default=0.00001)
+p.add_argument('--lr_decay', type=float, default=0.9)
+p.add_argument('--lr_decay_interval', type=int, default=5)
+p.add_argument('--batch_size', '-b', type=int, default=16)
+p.add_argument('--patches', '-p', type=int, default=64)
+p.add_argument('--validation_crop_rate', type=float, default=0.5)
+p.add_argument('--downsampling_filters', nargs='+', default=['box'])
+p.add_argument('--resize_blur_min', type=float, default=0.95)
+p.add_argument('--resize_blur_max', type=float, default=1.05)
+p.add_argument('--epoch', '-e', type=int, default=50)
+p.add_argument('--inner_epoch', type=int, default=4)
+p.add_argument('--finetune', '-f', default=None)
+p.add_argument('--model_name', default=None)
 
-    if train:
-        max_size = base.max_size
-        patches = base.patches
-    else:
-        max_size = 0
-        coeff = (1 - base.validation_rate) / base.validation_rate
-        patches = int(round(base.validation_crop_rate * coeff * base.patches))
-
-    config = {
-        'ch': ch,
-        'method': base.method,
-        'noise_level': base.noise_level,
-        'nr_rate': base.nr_rate,
-        'chroma_subsampling_rate': base.chroma_subsampling_rate,
-        'offset': offset,
-        'crop_size': crop_size,
-        'in_size': in_size,
-        'out_size': base.out_size,
-        'inner_scale': inner_scale,
-        'max_size': max_size,
-        'active_cropping_rate': base.active_cropping_rate,
-        'active_cropping_tries': base.active_cropping_tries,
-        'random_half_rate': base.random_half_rate,
-        'random_color_noise_rate': base.random_color_noise_rate,
-        'random_unsharp_mask_rate': base.random_unsharp_mask_rate,
-        'patches': patches,
-        'downsampling_filters': base.downsampling_filters,
-        'resize_blur_min': base.resize_blur_min,
-        'resize_blur_max': base.resize_blur_max,
-    }
-    return utils.Namespace(config)
+args = p.parse_args()
+if args.arch in srcnn.table:
+    args.arch = srcnn.table[args.arch]
 
 
-def train():
+warnings.filterwarnings('ignore')
+if __name__ == '__main__':
+    utils.set_random_seed(args.seed, args.gpu)
     if args.color == 'y':
         ch = 1
         weight = (1.0,)
@@ -146,8 +153,8 @@ def train():
     optimizer.setup(model)
     print('done')
 
-    valid_config = get_config(args, model, train=False)
-    train_config = get_config(args, model, train=True)
+    valid_config = utils.get_config(args, model, train=False)
+    train_config = utils.get_config(args, model, train=True)
 
     print('* starting processes of dataset sampler...', end=' ')
     valid_queue = DatasetSampler(valid_list, valid_config)
@@ -192,9 +199,3 @@ def train():
                     print('    * learning rate decay: {:.6f}'.format(
                         optimizer.alpha))
             print('    * elapsed time: {:.6f} sec'.format(time.time() - start))
-
-
-warnings.filterwarnings('ignore')
-if __name__ == '__main__':
-    utils.set_random_seed(args.seed, args.gpu)
-    train()
