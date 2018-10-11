@@ -176,8 +176,8 @@ if __name__ == '__main__':
     plt.rcParams['font.size'] = 12
     plt.rcParams['legend.fontsize'] = 12
 
-    title = '{} '.format(args.method)
-    title += 'noise{} {} '.format(
+    title = 'scale ({}) '.format(args.downsampling_filter)
+    title += 'noise{} ({}) '.format(
         args.noise_level, sampling_factor) if 'noise' in args.method else ''
     title += 'tta{}'.format(args.tta_level) if args.tta else ''
     plt.title(title)
