@@ -22,7 +22,6 @@ def blockwise(src, model, block_size, batch_size):
     if src.ndim == 2:
         src = src[:, :, np.newaxis]
     xp = model.xp
-    scale = 1. / 255.
 
     in_h, in_w, ch = src.shape
     out_h, out_w = in_h * model.inner_scale, in_w * model.inner_scale
@@ -49,9 +48,9 @@ def blockwise(src, model, block_size, batch_size):
             x[(i * nw) + j, :, :, :] = psrc_ij
 
     y = xp.zeros((nh * nw, ch, block_size, block_size), dtype=xp.float32)
-    with chainer.no_backprop_mode():
+    with chainer.no_backprop_mode(), chainer.using_config('train', False):
         for i in range(0, nh * nw, batch_size):
-            batch_x = xp.array(x[i:i + batch_size], dtype=np.float32) * scale
+            batch_x = xp.array(x[i:i + batch_size], dtype=np.float32) / 255
             batch_y = model(batch_x)
             y[i:i + batch_size] = batch_y.data
     y = cuda.to_cpu(y)

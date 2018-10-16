@@ -22,14 +22,13 @@ from lib.loss import clipped_weighted_huber_loss
 
 def train_inner_epoch(model, weight, optimizer, data_queue, batch_size):
     sum_loss = 0
-    scale = 1. / 255.
     xp = model.xp
     train_x, train_y = data_queue.get()
     perm = np.random.permutation(len(train_x))
     for i in six.moves.range(0, len(train_x), batch_size):
         local_perm = perm[i:i + batch_size]
-        batch_x = xp.array(train_x[local_perm], dtype=np.float32) * scale
-        batch_y = xp.array(train_y[local_perm], dtype=np.float32) * scale
+        batch_x = xp.array(train_x[local_perm], dtype=np.float32) / 255
+        batch_y = xp.array(train_y[local_perm], dtype=np.float32) / 255
         model.cleargrads()
         pred = model(batch_x)
         # loss = F.mean_squared_error(pred, batch_y)
@@ -42,15 +41,14 @@ def train_inner_epoch(model, weight, optimizer, data_queue, batch_size):
 
 def valid_inner_epoch(model, data_queue, batch_size):
     sum_score = 0
-    scale = 1. / 255.
     xp = model.xp
     valid_x, valid_y = data_queue.get()
     perm = np.random.permutation(len(valid_x))
-    with chainer.no_backprop_mode():
+    with chainer.no_backprop_mode(), chainer.using_config('train', False):
         for i in six.moves.range(0, len(valid_x), batch_size):
             local_perm = perm[i:i + batch_size]
-            batch_x = xp.array(valid_x[local_perm], dtype=np.float32) * scale
-            batch_y = xp.array(valid_y[local_perm], dtype=np.float32) * scale
+            batch_x = xp.array(valid_x[local_perm], dtype=np.float32) / 255
+            batch_y = xp.array(valid_y[local_perm], dtype=np.float32) / 255
             pred = model(batch_x)
             score = iproc.clipped_psnr(pred.data, batch_y)
             sum_score += float(score) * len(batch_x)
@@ -120,7 +118,7 @@ if __name__ == '__main__':
     valid_list, train_list = filelist[:valid_num], filelist[valid_num:]
     print('done')
 
-    print('* loading model...', end=' ')
+    print('* setup model...', end=' ')
     if args.model_name is None:
         if args.method == 'noise':
             model_name = 'anime_style_noise{}'.format(args.noise_level)
