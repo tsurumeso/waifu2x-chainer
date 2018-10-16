@@ -92,33 +92,29 @@ def load_models(cfg):
     return models
 
 
-def benchmark(models, filelist, sampling_factor, quality):
+def benchmark(models, images, sampling_factor, quality):
     scores = []
-    for path in filelist:
-        basename = os.path.basename(path)
-        _, ext = os.path.splitext(basename)
-        if ext.lower() in ['.png', '.bmp', '.tif', '.tiff']:
-            src = Image.open(path).convert('RGB')
-            w, h = src.size[:2]
-            src = src.crop((0, 0, w - (w % 2), h - (h % 2)))
-            dst = src.copy()
-            with iproc.array_to_wand(np.array(dst)) as tmp:
+    for src in images:
+        if quality == 100 and args.method == 'scale':
+            dst = np.array(src)
+        else:
+            with iproc.array_to_wand(np.array(src)) as tmp:
                 tmp = iproc.jpeg(tmp, sampling_factor, quality)
                 dst = iproc.wand_to_array(tmp)
-            dst = pairwise_transform.scale(
-                dst, [args.downsampling_filter], 1, 1, False)
-            dst = Image.fromarray(dst)
-            if 'noise_scale' in models:
-                dst = upscale_image(
-                    args, dst, models['noise_scale'], models['alpha'])
-            else:
-                if 'noise' in models:
-                    dst = denoise_image(args, dst, models['noise'])
-                if 'scale' in models:
-                    dst = upscale_image(args, dst, models['scale'])
-            score = iproc.clipped_psnr(
-                np.array(dst), np.array(src), a_max=255)
-            scores.append(score)
+        dst = pairwise_transform.scale(
+            dst, [args.downsampling_filter], 1, 1, False)
+        dst = Image.fromarray(dst)
+        if 'noise_scale' in models:
+            dst = upscale_image(
+                args, dst, models['noise_scale'], models['alpha'])
+        else:
+            if 'noise' in models:
+                dst = denoise_image(args, dst, models['noise'])
+            if 'scale' in models:
+                dst = upscale_image(args, dst, models['scale'])
+        score = iproc.clipped_psnr(
+            np.array(dst), np.array(src), a_max=255)
+        scores.append(score)
     return np.mean(scores), np.std(scores) / np.sqrt(len(scores))
 
 
@@ -128,7 +124,7 @@ p.add_argument('--input', '-i', default='images/small.png')
 p.add_argument('--arch', '-a', default='')
 p.add_argument('--method', '-m', choices=['scale', 'noise_scale'],
                default='scale')
-p.add_argument('--noise_level', '-n', type=int, choices=[0, 1, 2, 3],
+p.add_argument('--noise_level', '-n', type=int, choices=[0, 1],
                default=1)
 p.add_argument('--color', '-c', choices=['y', 'rgb'], default='rgb')
 p.add_argument('--tta', '-t', action='store_true')
@@ -151,6 +147,16 @@ if __name__ == '__main__':
     else:
         filelist = [args.input]
 
+    images = []
+    for path in filelist:
+        basename = os.path.basename(path)
+        _, ext = os.path.splitext(basename)
+        if ext.lower() in ['.png', '.bmp', '.tif', '.tiff']:
+            img = Image.open(path).convert('RGB')
+            w, h = img.size[:2]
+            img = img.crop((0, 0, w - (w % 2), h - (h % 2)))
+            images.append(img)
+
     qualities = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
     sampling_factor = '1x1,1x1,1x1'
     if args.chroma_subsampling:
@@ -165,7 +171,7 @@ if __name__ == '__main__':
         for quality in qualities:
             print(arch, quality)
             start = time.time()
-            score, sem = benchmark(models, filelist, sampling_factor, quality)
+            score, sem = benchmark(models, images, sampling_factor, quality)
             scores.append(score)
             sems.append(sem)
             print('Elapsed time: {:.6f} sec'.format(time.time() - start))
@@ -183,9 +189,17 @@ if __name__ == '__main__':
     plt.title(title)
     plt.xlabel('JPEG quality')
     plt.ylabel('PSNR [dB]')
-    plt.ylim(20, 40)
-    plt.xticks([20, 40, 60, 80, 100])
-    plt.yticks([20, 25, 30, 35])
+    plt.ylim(25, 45)
+    if args.method == 'scale':
+        plt.xticks([20, 40, 60, 80, 100], [20, 40, 60, 80, 'lossless'])
+    else:
+        plt.xticks([20, 40, 60, 80, 100])
+    plt.yticks([25, 30, 35, 40])
+    if args.method == 'noise_scale':
+        if args.noise_level == 0:
+            plt.axvspan(85, 100, color='b', alpha=0.1, lw=0)
+        elif args.noise_level == 1:
+            plt.axvspan(65, 90, color='b', alpha=0.1, lw=0)
     plt.grid(which='major', color='gray', linestyle='--')
     plt.gca().spines['right'].set_visible(False)
     plt.gca().spines['top'].set_visible(False)
