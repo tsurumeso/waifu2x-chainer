@@ -154,6 +154,17 @@ if __name__ == '__main__':
     valid_config = utils.get_config(args, model, train=False)
     train_config = utils.get_config(args, model, train=True)
 
+    print('* check forward path...', end=' ')
+    di = train_config.in_size
+    do = train_config.out_size
+    dx = model.xp.zeros((args.batch_size, 3, di, di), dtype=np.float32)
+    dy = model(dx)
+    if dy.shape[2:] != (do, do):
+        raise ValueError('Invlid output size\n'
+                         'Expect: {}\n'
+                         'Actual: ({}, {})'.format(dy.shape[2:], do, do))
+    print('done')
+
     print('* starting processes of dataset sampler...', end=' ')
     valid_queue = DatasetSampler(valid_list, valid_config)
     train_queue = DatasetSampler(train_list, train_config)
