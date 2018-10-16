@@ -146,14 +146,13 @@ p.add_argument('--tta', '-t', action='store_true')
 p.add_argument('--tta_level', '-T', type=int, choices=[2, 4, 8], default=8)
 p.add_argument('--batch_size', '-b', type=int, default=8)
 p.add_argument('--block_size', '-l', type=int, default=64)
-p.add_argument('--width', '-W', type=int, default=0)
-p.add_argument('--height', '-H', type=int, default=0)
+g = p.add_mutually_exclusive_group()
+g.add_argument('--width', '-W', type=int, default=0)
+g.add_argument('--height', '-H', type=int, default=0)
 
 args = p.parse_args()
 if args.arch in srcnn.table:
     args.arch = srcnn.table[args.arch]
-if args.width != 0 and args.height != 0:
-    args.height = 0
 
 
 if __name__ == '__main__':
