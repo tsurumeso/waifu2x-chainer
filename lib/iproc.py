@@ -2,7 +2,6 @@ from __future__ import division
 import io
 
 import chainer
-from chainer import cuda
 import chainer.links as L
 import numpy as np
 from PIL import Image
@@ -16,7 +15,7 @@ except ImportError:
 def alpha_make_border(rgb, alpha, model):
     xp = model.xp
     sum2d = L.Convolution2D(1, 1, 3, 1, 1, nobias=True)
-    if xp == cuda.cupy:
+    if xp == chainer.backends.cuda.cupy:
         sum2d.to_gpu()
     sum2d.W.data = xp.ones((1, 1, 3, 3))
 
@@ -40,7 +39,7 @@ def alpha_make_border(rgb, alpha, model):
             mask = mask_weight
             mask[mask > 0] = 1
             mask_nega = xp.abs(mask - 1).astype(xp.uint8) == 1
-    rgb = cuda.to_cpu(xp.clip(rgb, 0, 255))
+    rgb = chainer.backends.cuda.to_cpu(xp.clip(rgb, 0, 255))
     return Image.fromarray(rgb.transpose(1, 2, 0).astype(np.uint8))
 
 
@@ -104,7 +103,7 @@ def pcacov(x):
 
 
 def clipped_psnr(y, t, a_min=0., a_max=1.):
-    xp = cuda.get_array_module(y)
+    xp = chainer.backends.cuda.get_array_module(y)
     y_c = xp.clip(y, a_min, a_max)
     t_c = xp.clip(t, a_min, a_max)
     mse = xp.mean(xp.square(y_c - t_c))

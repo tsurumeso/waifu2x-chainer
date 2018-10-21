@@ -7,7 +7,6 @@ import time
 import warnings
 
 import chainer
-from chainer import cuda
 from chainer import optimizers
 import numpy as np
 import six
@@ -142,9 +141,9 @@ if __name__ == '__main__':
         chainer.serializers.load_npz(args.finetune, model)
 
     if args.gpu >= 0:
-        cuda.check_cuda_available()
-        cuda.get_device(args.gpu).use()
-        weight = cuda.cupy.array(weight)
+        chainer.backends.cuda.check_cuda_available()
+        chainer.backends.cuda.get_device(args.gpu).use()
+        weight = chainer.backends.cuda.to_gpu(weight)
         model.to_gpu()
 
     optimizer = optimizers.Adam(alpha=args.learning_rate)

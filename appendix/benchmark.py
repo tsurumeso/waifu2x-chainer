@@ -6,7 +6,6 @@ import sys
 import time
 
 import chainer
-from chainer import cuda
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
@@ -85,8 +84,8 @@ def load_models(cfg):
         chainer.serializers.load_npz(model_path, models['scale'])
 
     if cfg.gpu >= 0:
-        cuda.check_cuda_available()
-        cuda.get_device(cfg.gpu).use()
+        chainer.backends.cuda.check_cuda_available()
+        chainer.backends.cuda.get_device(cfg.gpu).use()
         for _, model in models.items():
             model.to_gpu()
     return models

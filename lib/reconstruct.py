@@ -1,7 +1,6 @@
 from __future__ import division
 
 import chainer
-from chainer import cuda
 import numpy as np
 from PIL import Image
 import six
@@ -53,7 +52,7 @@ def blockwise(src, model, block_size, batch_size):
             batch_x = xp.array(x[i:i + batch_size], dtype=np.float32) / 255
             batch_y = model(batch_x)
             y[i:i + batch_size] = batch_y.data
-    y = cuda.to_cpu(y)
+    y = chainer.backends.cuda.to_cpu(y)
 
     dst = np.zeros((ch, out_h + out_ph, out_w + out_pw), dtype=np.float32)
     for i in range(0, nh):
