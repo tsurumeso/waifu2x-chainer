@@ -139,6 +139,7 @@ class SEResBlock(chainer.Chain):
         h = F.leaky_relu(self.conv2(h), self.slope)
         se = F.relu(self.fc1(_global_average_pooling_2d(h)))
         se = F.sigmoid(self.fc2(se))[:, :, None, None]
+        se = F.broadcast_to(se, h.shape)
         if self.in_channels != self.out_channels:
             x = self.conv_bridge(x[:, :, 2:-2, 2:-2])
         else:
