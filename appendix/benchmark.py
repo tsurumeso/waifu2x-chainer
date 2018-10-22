@@ -34,12 +34,9 @@ def denoise_image(cfg, src, model):
     return dst
 
 
-def upscale_image(cfg, src, scale_model, alpha_model=None):
+def upscale_image(cfg, src, model):
     dst = src.copy()
     six.print_('2.0x upscaling...', end=' ', flush=True)
-    model = alpha_model
-    if alpha_model is None:
-        model = scale_model
     if model.inner_scale == 1:
         dst = iproc.nn_scaling(dst, 2)  # Nearest neighbor 2x scaling
     if cfg.tta:
@@ -63,10 +60,6 @@ def load_models(cfg):
         if os.path.exists(model_path):
             models['noise_scale'] = srcnn.archs[cfg.arch](ch)
             chainer.serializers.load_npz(model_path, models['noise_scale'])
-            alpha_model_name = 'anime_style_scale_{}.npz'.format(cfg.color)
-            alpha_model_path = os.path.join(model_dir, alpha_model_name)
-            models['alpha'] = srcnn.archs[cfg.arch](ch)
-            chainer.serializers.load_npz(alpha_model_path, models['alpha'])
         else:
             model_name = 'anime_style_noise{}_{}.npz'.format(
                 cfg.noise_level, cfg.color)
@@ -104,8 +97,7 @@ def benchmark(models, images, sampling_factor, quality):
             dst, [args.downsampling_filter], 1, 1, False)
         dst = Image.fromarray(dst)
         if 'noise_scale' in models:
-            dst = upscale_image(
-                args, dst, models['noise_scale'], models['alpha'])
+            dst = upscale_image(args, dst, models['noise_scale'])
         else:
             if 'noise' in models:
                 dst = denoise_image(args, dst, models['noise'])
