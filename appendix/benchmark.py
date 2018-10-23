@@ -120,8 +120,8 @@ p.add_argument('--noise_level', '-n', type=int, choices=[0, 1],
 p.add_argument('--color', '-c', choices=['y', 'rgb'], default='rgb')
 p.add_argument('--tta', '-t', action='store_true')
 p.add_argument('--tta_level', '-T', type=int, choices=[2, 4, 8], default=8)
-p.add_argument('--batch_size', '-b', type=int, default=8)
-p.add_argument('--block_size', '-l', type=int, default=64)
+p.add_argument('--batch_size', '-b', type=int, default=16)
+p.add_argument('--block_size', '-l', type=int, default=128)
 p.add_argument('--chroma_subsampling', '-j', action='store_true')
 p.add_argument('--downsampling_filter', '-d', default='box')
 
