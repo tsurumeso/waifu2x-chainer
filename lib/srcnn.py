@@ -137,7 +137,7 @@ class SEResBlock(chainer.Chain):
     def __call__(self, x):
         h = F.leaky_relu(self.conv1(x), self.slope)
         h = F.leaky_relu(self.conv2(h), self.slope)
-        se = F.relu(self.fc1(_global_average_pooling_2d(h)))
+        se = F.relu(self.fc1(F.average(h, axis=(2, 3))))
         se = F.sigmoid(self.fc2(se))[:, :, None, None]
         se = F.broadcast_to(se, h.shape)
         if self.in_channels != self.out_channels:
@@ -176,12 +176,6 @@ class UpResNet10(chainer.Chain):
         h = h + skip[:, :, 11:-11, 11:-11]
         h = self.conv_post(h)
         return h
-
-
-def _global_average_pooling_2d(x):
-    n, channel, rows, cols = x.data.shape
-    h = F.average_pooling_2d(x, (rows, cols), stride=1)
-    return h
 
 
 archs = {
