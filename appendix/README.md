@@ -4,7 +4,7 @@
 
 ## Summary
 
-|Scale|Noise level 1, YUV444, Scale|Noise level 1, YUV420, Scale|
-|:---:|:---:|:---:|
-|![](images/scale.png)|![](images/noise1_444_scale.png)|![](images/noise1_420_scale.png)|
+|Scale|Noise level 1, YUV420, Scale|
+|:---:|:---:|
+|![](images/scale.png)|![](images/noise1_420_scale.png)|
 
