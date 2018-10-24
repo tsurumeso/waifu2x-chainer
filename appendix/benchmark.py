@@ -7,6 +7,7 @@ import time
 
 import chainer
 import matplotlib.pyplot as plt
+import matplotlib.ticker as tick
 import numpy as np
 from PIL import Image
 import six
@@ -87,14 +88,12 @@ def load_models(cfg):
 def benchmark(models, images, sampling_factor, quality):
     scores = []
     for src in images:
-        if quality == 100 and args.method == 'scale':
-            dst = np.array(src)
-        else:
-            with iproc.array_to_wand(np.array(src)) as tmp:
+        dst = pairwise_transform.scale(
+            np.array(src), [args.downsampling_filter], 1, 1, False)
+        if quality != 100 or args.method != 'scale':
+            with iproc.array_to_wand(dst) as tmp:
                 tmp = iproc.jpeg(tmp, sampling_factor, quality)
                 dst = iproc.wand_to_array(tmp)
-        dst = pairwise_transform.scale(
-            dst, [args.downsampling_filter], 1, 1, False)
         dst = Image.fromarray(dst)
         if 'noise_scale' in models:
             dst = upscale_image(args, dst, models['noise_scale'])
@@ -111,7 +110,7 @@ def benchmark(models, images, sampling_factor, quality):
 
 p = argparse.ArgumentParser()
 p.add_argument('--gpu', '-g', type=int, default=-1)
-p.add_argument('--input', '-i', default='images/small.png')
+p.add_argument('--input', '-i', default='../images/original.png')
 p.add_argument('--arch', '-a', default='')
 p.add_argument('--method', '-m', choices=['scale', 'noise_scale'],
                default='scale')
@@ -148,7 +147,7 @@ if __name__ == '__main__':
             img = img.crop((0, 0, w - (w % 2), h - (h % 2)))
             images.append(img)
 
-    qualities = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+    qualities = [50, 60, 70, 80, 90, 100]
     sampling_factor = '1x1,1x1,1x1'
     if args.chroma_subsampling:
         sampling_factor = '2x2,1x1,1x1'
@@ -180,18 +179,19 @@ if __name__ == '__main__':
     plt.title(title)
     plt.xlabel('JPEG quality')
     plt.ylabel('PSNR [dB]')
-    plt.ylim(25, 45)
+    plt.ylim(27.5, 42)
     if args.method == 'scale':
-        plt.xticks([20, 40, 60, 80, 100], [20, 40, 60, 80, 'lossless'])
+        plt.xticks([50, 60, 70, 80, 90, 100], [50, 60, 70, 80, 90, 'lossless'])
     else:
-        plt.xticks([20, 40, 60, 80, 100])
-    plt.yticks([25, 30, 35, 40])
+        plt.xticks([50, 60, 70, 80, 90, 100])
+    plt.yticks([30, 35, 40])
+    plt.gca().yaxis.set_minor_locator(tick.MultipleLocator(2.5))
     if args.method == 'noise_scale':
         if args.noise_level == 0:
             plt.axvspan(85, 100, color='b', alpha=0.1, lw=0)
         elif args.noise_level == 1:
             plt.axvspan(65, 90, color='b', alpha=0.1, lw=0)
-    plt.grid(which='major', color='gray', linestyle='--')
+    plt.grid(which='both', color='gray', linestyle='--')
     plt.gca().spines['right'].set_visible(False)
     plt.gca().spines['top'].set_visible(False)
     plt.gca().yaxis.set_ticks_position('left')
@@ -199,5 +199,5 @@ if __name__ == '__main__':
     for key, value in arch_scores.items():
         plt.errorbar(qualities, value[0], yerr=value[1],
                      fmt='o-', capsize=3, label=key)
-    plt.legend(edgecolor='white')
+    plt.legend(loc='upper left', edgecolor='white')
     plt.show()
