@@ -8,7 +8,7 @@ import six
 from lib import iproc
 
 
-def get_outer_padding(size, block_size, offset):
+def _get_padding_size(size, block_size, offset):
     pad = size % block_size
     if pad == 0:
         pad = offset
@@ -22,15 +22,16 @@ def blockwise(src, model, block_size, batch_size):
         src = src[:, :, np.newaxis]
     xp = model.xp
 
-    in_h, in_w, ch = src.shape
-    out_h, out_w = in_h * model.inner_scale, in_w * model.inner_scale
     inner_block_size = block_size // model.inner_scale
     inner_offset = model.offset // model.inner_scale
     in_block_size = inner_block_size + inner_offset * 2
-    in_ph = get_outer_padding(in_h, inner_block_size, inner_offset)
-    in_pw = get_outer_padding(in_w, inner_block_size, inner_offset)
-    out_ph = get_outer_padding(out_h, block_size, model.offset)
-    out_pw = get_outer_padding(out_w, block_size, model.offset)
+
+    in_h, in_w, ch = src.shape
+    out_h, out_w = in_h * model.inner_scale, in_w * model.inner_scale
+    in_ph = _get_padding_size(in_h, inner_block_size, inner_offset)
+    in_pw = _get_padding_size(in_w, inner_block_size, inner_offset)
+    out_ph = _get_padding_size(out_h, block_size, model.offset)
+    out_pw = _get_padding_size(out_w, block_size, model.offset)
 
     psrc = np.pad(
         src, ((inner_offset, in_ph), (inner_offset, in_pw), (0, 0)), 'edge')
