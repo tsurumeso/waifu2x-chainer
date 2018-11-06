@@ -131,7 +131,7 @@ p.add_argument('--gpu', '-g', type=int, default=-1)
 p.add_argument('--input', '-i', default='images/small.png')
 p.add_argument('--output_dir', '-o', default='./')
 p.add_argument('--extension', '-e', default='png')
-p.add_argument('--quality', '-q', type=int, default=100)
+p.add_argument('--quality', '-q', type=int, default=None)
 p.add_argument('--arch', '-a',
                choices=['VGG7', '0', 'UpConv7', '1',
                         'ResNet10', '2', 'UpResNet10', '3'],
@@ -205,11 +205,15 @@ if __name__ == '__main__':
             outpath = os.path.join(args.output_dir, outname)
             if not os.path.exists(basepath):
                 outpath = basepath
+
+            lossless = args.quality is None
+            if lossless:
+                args.quality = 100
             if icc_profile is not None:
                 dst.convert(src.mode).save(
-                    outpath, quality=args.quality, lossloss=True, method=6,
+                    outpath, quality=args.quality, lossless=lossless,
                     icc_profile=icc_profile)
             else:
                 dst.convert(src.mode).save(
-                    outpath, quality=args.quality, lossloss=True, method=6)
+                    outpath, quality=args.quality, lossless=lossless)
             six.print_('Saved as \'{}\''.format(outpath))
