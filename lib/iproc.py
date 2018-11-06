@@ -52,8 +52,19 @@ def y2rgb(src):
 
 
 def read_image_rgb_uint8(path):
-    src = Image.open(path).convert('RGB')
-    dst = np.array(src, dtype=np.uint8)
+    src = Image.open(path)
+    if src.mode in ('L', 'RGB', 'P'):
+        if isinstance(src.info.get('transparency'), bytes):
+            src = src.convert('RGBA')
+    mode = src.mode
+    if mode in ('LA', 'RGBA'):
+        if mode == 'LA':
+            src = src.convert('RGBA')
+        rgb = Image.new('RGB', src.size, (128, 128, 128))
+        rgb.paste(src, mask=src.split()[-1])
+    else:
+        rgb = src.convert('RGB')
+    dst = np.array(rgb, dtype=np.uint8)
     return dst
 
 
