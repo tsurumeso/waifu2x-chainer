@@ -8,6 +8,7 @@
 /*.sh
 /*.npz
 /*.png
+/*.jpg
 /*.webp
 
 epoch/
