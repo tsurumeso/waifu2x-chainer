@@ -173,14 +173,13 @@ if __name__ == '__main__':
 
     for path in filelist:
         src = Image.open(path)
-        icc_profile = src.info.get('icc_profile')
         w, h = src.size[:2]
         if args.width != 0:
             args.scale_ratio = args.width / w
         if args.height != 0:
             args.scale_ratio = args.height / h
         outname, ext = os.path.splitext(os.path.basename(path))
-        basepath = os.path.join(
+        outpath = os.path.join(
             args.output_dir, '{}.{}'.format(outname, args.extension))
         if ext.lower() in extensions:
             outname += '_(tta{})'.format(args.tta_level) if args.tta else '_'
@@ -202,18 +201,14 @@ if __name__ == '__main__':
 
             outname += '({}_{}).{}'.format(
                 args.arch.lower(), args.color, args.extension)
-            outpath = os.path.join(args.output_dir, outname)
-            if not os.path.exists(basepath):
-                outpath = basepath
+            if os.path.exists(outpath):
+                outpath = os.path.join(args.output_dir, outname)
 
             lossless = args.quality is None
-            if lossless:
-                args.quality = 100
-            if icc_profile is not None:
-                dst.convert(src.mode).save(
-                    outpath, quality=args.quality, lossless=lossless,
-                    icc_profile=icc_profile)
-            else:
-                dst.convert(src.mode).save(
-                    outpath, quality=args.quality, lossless=lossless)
+            quality = 100 if lossless else args.quality
+            icc_profile = src.info.get('icc_profile')
+            icc_profile = "" if icc_profile is None else icc_profile
+            dst.convert(src.mode).save(
+                outpath, quality=quality, lossless=lossless,
+                icc_profile=icc_profile)
             six.print_('Saved as \'{}\''.format(outpath))
