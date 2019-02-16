@@ -1,6 +1,6 @@
 # waifu2x-chainer
 
-Chainer implementation of waifu2x [[1]](https://github.com/nagadomi/waifu2x) and its model trainer.
+This repository contains the Chainer implementation of waifu2x [[1]](https://github.com/nagadomi/waifu2x).
 Note that the training procedure of waifu2x-chainer may be slightly different from original waifu2x.
 
 ## Summary
@@ -93,9 +93,9 @@ cd appendix
 python convert_models.py
 ```
 
-Converted models are saved at the same directory of the original models
+Results are saved at the same directory of the original models
 (e.g. models/vgg7/anime_style_scale_rgb.npz to models/vgg7/anime_style_scale_rgb.caffemodel).
-Since Crop Layer is currently not supported on Chainer and ONNX, ResNet10 model export cannot be done.
+Since Crop Layer is currently not supported on Chainer and ONNX, ResNet models are not exported.
 
 ## References
 
