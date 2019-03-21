@@ -172,19 +172,20 @@ if __name__ == '__main__':
         filelist = [args.input]
 
     for path in filelist:
-        src = Image.open(path)
-        w, h = src.size[:2]
-        if args.width != 0:
-            args.scale_ratio = args.width / w
-        if args.height != 0:
-            args.scale_ratio = args.height / h
         outname, ext = os.path.splitext(os.path.basename(path))
         outpath = os.path.join(
             args.output_dir, '{}.{}'.format(outname, args.extension))
         if ext.lower() in extensions:
-            outname += '_(tta{})'.format(args.tta_level) if args.tta else '_'
+            src = Image.open(path)
+            w, h = src.size[:2]
+            if args.width != 0:
+                args.scale_ratio = args.width / w
+            if args.height != 0:
+                args.scale_ratio = args.height / h
+
             dst = src.copy()
             start = time.time()
+            outname += '_(tta{})'.format(args.tta_level) if args.tta else '_'
             if 'noise_scale' in models:
                 outname += '(noise{}_scale{:.1f}x)'.format(
                     args.noise_level, args.scale_ratio)
