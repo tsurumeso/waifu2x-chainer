@@ -147,6 +147,8 @@ p.add_argument('--block_size', '-l', type=int, default=128)
 g = p.add_mutually_exclusive_group()
 g.add_argument('--width', '-W', type=int, default=0)
 g.add_argument('--height', '-H', type=int, default=0)
+g.add_argument('--shorter_side', '-S', type=int, default=0)
+g.add_argument('--longer_side', '-L', type=int, default=0)
 
 args = p.parse_args()
 if args.arch in srcnn.table:
@@ -177,8 +179,18 @@ if __name__ == '__main__':
             w, h = src.size[:2]
             if args.width != 0:
                 args.scale_ratio = args.width / w
-            if args.height != 0:
+            elif args.height != 0:
                 args.scale_ratio = args.height / h
+            elif args.shorter_side != 0:
+                if w < h:
+                    args.scale_ratio = args.shorter_side / w
+                else:
+                    args.scale_ratio = args.shorter_side / h
+            elif args.longer_side != 0:
+                if w > h:
+                    args.scale_ratio = args.longer_side / w
+                else:
+                    args.scale_ratio = args.longer_side / h
 
             dst = src.copy()
             start = time.time()
