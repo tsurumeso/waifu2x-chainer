@@ -32,12 +32,9 @@ def denoise_image(cfg, src, model):
 
 def upscale_image(cfg, src, scale_model, alpha_model=None):
     dst, alpha = split_alpha(src, scale_model)
-    log_scale = np.log2(cfg.scale_ratio)
-    for i in range(int(np.ceil(log_scale))):
+    for i in range(int(np.ceil(np.log2(cfg.scale_ratio)))):
         six.print_('2.0x upscaling...', end=' ', flush=True)
-        model = alpha_model
-        if i == 0 or alpha_model is None:
-            model = scale_model
+        model = scale_model if i == 0 or alpha_model is None else alpha_model
         if model.inner_scale == 1:
             dst = iproc.nn_scaling(dst, 2)  # Nearest neighbor 2x scaling
             alpha = iproc.nn_scaling(alpha, 2)  # Nearest neighbor 2x scaling
@@ -55,7 +52,7 @@ def upscale_image(cfg, src, scale_model, alpha_model=None):
         six.print_('OK')
     dst_w = int(np.round(src.size[0] * cfg.scale_ratio))
     dst_h = int(np.round(src.size[1] * cfg.scale_ratio))
-    if np.round(log_scale % 1.0, 6) != 0 or log_scale <= 0:
+    if dst_w != dst.size[0] or dst_h != dst.size[1]:
         six.print_('Resizing...', end=' ', flush=True)
         dst = dst.resize((dst_w, dst_h), Image.LANCZOS)
         six.print_('OK')
