@@ -12,7 +12,7 @@ Note that the training procedure of waifu2x-chainer may be slightly different fr
 ## Requirements
 
   - Chainer
-  - Cupy (for GPU support)
+  - CuPy (for GPU support)
   - Matplotlib (for benchmark)
   - ONNX-Chainer (for ONNX model export)
   - Pillow
