@@ -161,31 +161,31 @@ if __name__ == '__main__':
 
     input_exts = ['.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff', '.webp']
     output_exts = ['.png', '.webp']
-    out_ext = '.' + args.extension
+    outext = '.' + args.extension
 
     outname = None
-    output_dir = args.output
+    outdir = args.output
     if os.path.isdir(args.input):
         filelist = utils.load_filelist(args.input)
     else:
-        tmp_outname, tmp_ext = os.path.splitext(os.path.basename(args.output))
-        if tmp_ext in output_exts:
-            out_ext = tmp_ext
-            outname = tmp_outname
-            output_dir = os.path.dirname(args.output)
-            output_dir = './' if output_dir == '' else output_dir
-        elif not tmp_ext == '':
-            raise ValueError('Format {} is not supported'.format(tmp_ext))
+        tmpname, tmpext = os.path.splitext(os.path.basename(args.output))
+        if tmpext in output_exts:
+            outext = tmpext
+            outname = tmpname
+            outdir = os.path.dirname(args.output)
+            outdir = './' if outdir == '' else outdir
+        elif not tmpext == '':
+            raise ValueError('Format {} is not supported'.format(tmpext))
         filelist = [args.input]
 
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
 
     for path in filelist:
         if outname is None or len(filelist) > 1:
-            outname, out_ext = os.path.splitext(os.path.basename(path))
-        outpath = os.path.join(output_dir, '{}{}'.format(outname, out_ext))
-        if out_ext.lower() in input_exts:
+            outname, outext = os.path.splitext(os.path.basename(path))
+        outpath = os.path.join(outdir, '{}{}'.format(outname, outext))
+        if outext.lower() in input_exts:
             src = Image.open(path)
             w, h = src.size[:2]
             if args.width != 0:
@@ -220,10 +220,9 @@ if __name__ == '__main__':
                     dst = upscale_image(args, dst, models['scale'])
             print('Elapsed time: {:.6f} sec'.format(time.time() - start))
 
-            outname += '({}_{}){}'.format(
-                args.arch.lower(), args.color, out_ext)
+            outname += '({}_{}){}'.format(args.arch, args.color, outext)
             if os.path.exists(outpath):
-                outpath = os.path.join(output_dir, outname)
+                outpath = os.path.join(outdir, outname)
 
             lossless = args.quality is None
             quality = 100 if lossless else args.quality

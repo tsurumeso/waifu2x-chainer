@@ -14,10 +14,9 @@ except ImportError:
 
 def alpha_make_border(rgb, alpha, model):
     xp = model.xp
-    sum2d = L.Convolution2D(1, 1, 3, 1, 1, nobias=True)
+    sum2d = L.Convolution2D(1, 1, 3, 1, 1, nobias=True, initialW=1)
     if xp == chainer.backends.cuda.cupy:
         sum2d.to_gpu()
-    sum2d.W.data = xp.ones((1, 1, 3, 3))
 
     mask = xp.array(alpha, dtype=xp.float32)
     mask[mask > 0] = 1
