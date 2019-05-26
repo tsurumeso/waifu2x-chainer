@@ -127,8 +127,8 @@ def load_models(cfg):
 p = argparse.ArgumentParser()
 p.add_argument('--gpu', '-g', type=int, default=-1)
 p.add_argument('--input', '-i', default='images/small.png')
-p.add_argument('--output_dir', '-o', default='./')
-p.add_argument('--extension', '-e', default='png')
+p.add_argument('--output', '-o', default='./')
+p.add_argument('--extension', '-e', choices=['png', 'webp'], default='png')
 p.add_argument('--quality', '-q', type=int, default=None)
 p.add_argument('--arch', '-a',
                choices=['VGG7', '0', 'UpConv7', '1',
@@ -159,23 +159,33 @@ if args.arch in srcnn.table:
 if __name__ == '__main__':
     models = load_models(args)
 
-    extensions = ['.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff', '.webp']
-    if args.extension not in ['png', 'webp']:
-        raise ValueError('{} format is not supported'.format(args.extension))
+    input_exts = ['.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff', '.webp']
+    output_exts = ['.png', '.webp']
+    out_ext = '.' + args.extension
 
-    if not os.path.exists(args.output_dir):
-        os.makedirs(args.output_dir)
-
+    outname = None
+    output_dir = args.output
     if os.path.isdir(args.input):
         filelist = utils.load_filelist(args.input)
     else:
+        tmp_outname, tmp_ext = os.path.splitext(os.path.basename(args.output))
+        if tmp_ext in output_exts:
+            out_ext = tmp_ext
+            outname = tmp_outname
+            output_dir = os.path.dirname(args.output)
+            output_dir = './' if output_dir == '' else output_dir
+        elif not tmp_ext == '':
+            raise ValueError('Format {} is not supported'.format(tmp_ext))
         filelist = [args.input]
 
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
     for path in filelist:
-        outname, ext = os.path.splitext(os.path.basename(path))
-        outpath = os.path.join(
-            args.output_dir, '{}.{}'.format(outname, args.extension))
-        if ext.lower() in extensions:
+        if outname is None or len(filelist) > 1:
+            outname, out_ext = os.path.splitext(os.path.basename(path))
+        outpath = os.path.join(output_dir, '{}{}'.format(outname, out_ext))
+        if out_ext.lower() in input_exts:
             src = Image.open(path)
             w, h = src.size[:2]
             if args.width != 0:
@@ -210,10 +220,10 @@ if __name__ == '__main__':
                     dst = upscale_image(args, dst, models['scale'])
             print('Elapsed time: {:.6f} sec'.format(time.time() - start))
 
-            outname += '({}_{}).{}'.format(
-                args.arch.lower(), args.color, args.extension)
+            outname += '({}_{}){}'.format(
+                args.arch.lower(), args.color, out_ext)
             if os.path.exists(outpath):
-                outpath = os.path.join(args.output_dir, outname)
+                outpath = os.path.join(output_dir, outname)
 
             lossless = args.quality is None
             quality = 100 if lossless else args.quality
