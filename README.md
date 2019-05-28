@@ -23,9 +23,13 @@ Note that the training procedure of waifu2x-chainer may be slightly different fr
 ### Install Python packages
 ```
 pip install chainer
-pip install cupy
 pip install pillow
 ```
+
+### Enable GPU support
+
+Install CuPy precompiled binary package which includes the latest version of cuDNN library.  
+See: [CuPy Installation Guide](https://docs-cupy.chainer.org/en/stable/install.html#install-cupy)
 
 ### Getting waifu2x-chainer
 ```
@@ -71,6 +75,7 @@ python waifu2x.py -m noise_scale -n 3 -i path/to/image/or/directory -a 0 -g 0
 
 ### Install Wand
 ```
+sudo apt install libmagickwand-dev
 pip install wand
 ```
 
