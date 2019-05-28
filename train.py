@@ -54,8 +54,7 @@ def valid_inner_epoch(model, data_queue, batch_size):
     return sum_score / len(valid_x)
 
 
-p = argparse.ArgumentParser(
-    description='Chainer implementation of waifu2x model trainer')
+p = argparse.ArgumentParser(description='Chainer implementation of waifu2x')
 p.add_argument('--gpu', '-g', type=int, default=-1)
 p.add_argument('--seed', '-s', type=int, default=11)
 p.add_argument('--dataset_dir', '-d', required=True)
@@ -136,7 +135,7 @@ if __name__ == '__main__':
     if model.offset % model.inner_scale != 0:
         raise ValueError('offset %% inner_scale must be 0.')
     elif model.inner_scale != 1 and model.inner_scale % 2 != 0:
-        raise ValueError('inner_scale must be 1 or multiple of 2.')
+        raise ValueError('inner_scale must be 1 or an even number.')
     if args.finetune is not None:
         chainer.serializers.load_npz(args.finetune, model)
 
@@ -185,7 +184,7 @@ if __name__ == '__main__':
                 train_queue.wait()
             if train_loss < best_loss:
                 best_loss = train_loss
-                print('    * best loss on train dataset: {:.6f}'.format(
+                print('    * best loss on training dataset: {:.6f}'.format(
                     train_loss))
             valid_score = valid_inner_epoch(
                 model, valid_queue, args.batch_size)

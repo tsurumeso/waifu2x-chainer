@@ -124,7 +124,7 @@ def load_models(cfg):
     return models
 
 
-p = argparse.ArgumentParser()
+p = argparse.ArgumentParser(description='Chainer implementation of waifu2x')
 p.add_argument('--gpu', '-g', type=int, default=-1)
 p.add_argument('--input', '-i', default='images/small.png')
 p.add_argument('--output', '-o', default='./')
