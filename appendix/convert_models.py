@@ -34,7 +34,10 @@ if __name__ == '__main__':
                 size = 64 + model.offset
                 data = np.zeros((1, channels, size, size), dtype=np.float32)
                 x = chainer.Variable(data)
-                chainer.serializers.load_npz(model_path, model)
-                caffe.export(model, [x], model_dir, True, basename)
+                try:
+                    chainer.serializers.load_npz(model_path, model)
+                    caffe.export(model, [x], model_dir, True, basename)
+                    rename_caffe_model(model_dir, basename)
+                except Exception:
+                    print('Skipped caffe model export')
                 onnx_chainer.export(model, x, filename=onnx_path)
-                rename_caffe_model(model_dir, basename)
