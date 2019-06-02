@@ -61,27 +61,37 @@ class UpConv7(chainer.Chain):
 
 class ResBlock(chainer.Chain):
 
-    def __init__(self, in_channels, out_channels, slope=0.1):
+    def __init__(self, in_channels, out_channels, slope=0.1, r=16, se=False):
         super(ResBlock, self).__init__()
         with self.init_scope():
             self.conv1 = L.Convolution2D(in_channels, out_channels, 3)
             self.conv2 = L.Convolution2D(out_channels, out_channels, 3)
 
-        if in_channels != out_channels:
-            conv_bridge = L.Convolution2D(in_channels, out_channels, 1)
-            self.add_link('conv_bridge', conv_bridge)
+            if in_channels != out_channels:
+                self.conv_bridge = L.Convolution2D(
+                    in_channels, out_channels, 1)
 
-        self.in_channels = in_channels
-        self.out_channels = out_channels
+            if se:
+                self.fc1 = L.Linear(out_channels, out_channels // r)
+                self.fc2 = L.Linear(out_channels // r, out_channels)
+
         self.slope = slope
 
     def __call__(self, x):
         h = F.leaky_relu(self.conv1(x), self.slope)
         h = F.leaky_relu(self.conv2(h), self.slope)
-        if self.in_channels != self.out_channels:
+
+        if hasattr(self, 'conv_bridge'):
             x = self.conv_bridge(x[:, :, 2:-2, 2:-2])
         else:
             x = x[:, :, 2:-2, 2:-2]
+
+        if hasattr(self, 'fc1') and hasattr(self, 'fc2'):
+            se = F.relu(self.fc1(F.average(h, axis=(2, 3))))
+            se = F.sigmoid(self.fc2(se))[:, :, None, None]
+            se = F.broadcast_to(se, h.shape)
+            h = h * se
+
         return h + x
 
 
@@ -104,47 +114,16 @@ class ResNet10(chainer.Chain):
         self.inner_scale = 1
 
     def __call__(self, x):
-        h = skip = F.leaky_relu(self.conv_pre(x), 0.1)
+        h = bridge = F.leaky_relu(self.conv_pre(x), 0.1)
         h = self.res1(h)
         h = self.res2(h)
         h = self.res3(h)
         h = self.res4(h)
         h = self.res5(h)
         h = F.leaky_relu(self.conv_bridge(h), 0.1)
-        h = h + skip[:, :, 11:-11, 11:-11]
+        h = h + bridge[:, :, 11:-11, 11:-11]
         h = self.conv_post(h)
         return h
-
-
-class SEResBlock(chainer.Chain):
-
-    def __init__(self, in_channels, out_channels, r=16, slope=0.1):
-        super(SEResBlock, self).__init__()
-        with self.init_scope():
-            self.conv1 = L.Convolution2D(in_channels, out_channels, 3)
-            self.conv2 = L.Convolution2D(out_channels, out_channels, 3)
-            self.fc1 = L.Linear(out_channels, out_channels // r)
-            self.fc2 = L.Linear(out_channels // r, out_channels)
-
-        if in_channels != out_channels:
-            conv_bridge = L.Convolution2D(in_channels, out_channels, 1)
-            self.add_link('conv_bridge', conv_bridge)
-
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.slope = slope
-
-    def __call__(self, x):
-        h = F.leaky_relu(self.conv1(x), self.slope)
-        h = F.leaky_relu(self.conv2(h), self.slope)
-        se = F.relu(self.fc1(F.average(h, axis=(2, 3))))
-        se = F.sigmoid(self.fc2(se))[:, :, None, None]
-        se = F.broadcast_to(se, h.shape)
-        if self.in_channels != self.out_channels:
-            x = self.conv_bridge(x[:, :, 2:-2, 2:-2])
-        else:
-            x = x[:, :, 2:-2, 2:-2]
-        return h * se + x
 
 
 class UpResNet10(chainer.Chain):
@@ -153,11 +132,11 @@ class UpResNet10(chainer.Chain):
         super(UpResNet10, self).__init__()
         with self.init_scope():
             self.conv_pre = L.Convolution2D(ch, 64, 3)
-            self.res1 = SEResBlock(64, 64, 4)
-            self.res2 = SEResBlock(64, 64, 4)
-            self.res3 = SEResBlock(64, 64, 4)
-            self.res4 = SEResBlock(64, 64, 4)
-            self.res5 = SEResBlock(64, 64, 4)
+            self.res1 = ResBlock(64, 64, r=4, se=True)
+            self.res2 = ResBlock(64, 64, r=4, se=True)
+            self.res3 = ResBlock(64, 64, r=4, se=True)
+            self.res4 = ResBlock(64, 64, r=4, se=True)
+            self.res5 = ResBlock(64, 64, r=4, se=True)
             self.conv_bridge = L.Convolution2D(64, 64, 3)
             self.conv_post = L.Deconvolution2D(64, ch, 4, 2, 3, nobias=True)
 
@@ -166,14 +145,14 @@ class UpResNet10(chainer.Chain):
         self.inner_scale = 2
 
     def __call__(self, x):
-        h = skip = F.leaky_relu(self.conv_pre(x), 0.1)
+        h = bridge = F.leaky_relu(self.conv_pre(x), 0.1)
         h = self.res1(h)
         h = self.res2(h)
         h = self.res3(h)
         h = self.res4(h)
         h = self.res5(h)
         h = F.leaky_relu(self.conv_bridge(h), 0.1)
-        h = h + skip[:, :, 11:-11, 11:-11]
+        h = h + bridge[:, :, 11:-11, 11:-11]
         h = self.conv_post(h)
         return h
 
