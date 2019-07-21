@@ -1,6 +1,6 @@
 # waifu2x-chainer
 
-This repository contains the Chainer implementation of waifu2x [[1]](https://github.com/nagadomi/waifu2x).
+This is a Chainer implementation of waifu2x [[1]](https://github.com/nagadomi/waifu2x).
 Note that the training procedure of waifu2x-chainer may be slightly different from original waifu2x.
 
 ## Summary
