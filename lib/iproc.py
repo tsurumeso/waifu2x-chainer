@@ -42,14 +42,6 @@ def alpha_make_border(rgb, alpha, model):
     return Image.fromarray(rgb.transpose(1, 2, 0).astype(np.uint8))
 
 
-def y2rgb(src):
-    rgb = np.zeros((src.size[1], src.size[0], 3))
-    rgb[:, :, 0] = np.array(src)
-    rgb[:, :, 1] = np.array(src)
-    rgb[:, :, 2] = np.array(src)
-    return Image.fromarray(rgb.astype(np.uint8))
-
-
 def read_image_rgb_uint8(path):
     src = Image.open(path)
     if src.mode in ('L', 'RGB', 'P'):
@@ -91,11 +83,13 @@ def nn_scaling(src, ratio):
     if isinstance(src, Image.Image):
         w, h = src.size[:2]
         dst = src.resize((int(w * ratio), int(h * ratio)), Image.NEAREST)
-    else:
+    elif isinstance(src, np.ndarray):
         with array_to_wand(src) as tmp:
             h, w = src.shape[:2]
             tmp.resize(int(w * ratio), int(h * ratio), 'box')
             dst = wand_to_array(tmp)
+    else:
+        raise ValueError('Unknown image type')
     return dst
 
 

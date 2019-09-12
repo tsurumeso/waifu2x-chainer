@@ -5,8 +5,6 @@ import numpy as np
 from PIL import Image
 import six
 
-from lib import iproc
-
 
 def _get_padding_size(size, block_size, offset):
     pad = size % block_size
@@ -144,7 +142,7 @@ def image(src, model, block_size, batch_size):
     elif model.ch == 3:
         y2rgb = src.mode == 'L'
         if y2rgb:
-            src = iproc.y2rgb(src)
+            src = src.convert('RGB')
         src = np.array(src, dtype=np.uint8)
         dst = blockwise(src, model, block_size, batch_size)
         dst = np.clip(dst, 0, 1) * 255
