@@ -174,7 +174,7 @@ if __name__ == '__main__':
             outname = tmpname
             outdir = os.path.dirname(args.output)
             outdir = './' if outdir == '' else outdir
-        elif not tmpext == '':
+        elif tmpext != '':
             raise ValueError('Format {} is not supported'.format(tmpext))
         filelist = [args.input]
 
@@ -182,10 +182,11 @@ if __name__ == '__main__':
         os.makedirs(outdir)
 
     for path in filelist:
+        tmpname, tmpext = os.path.splitext(os.path.basename(path))
         if outname is None or len(filelist) > 1:
-            outname, outext = os.path.splitext(os.path.basename(path))
+            outname = tmpname
         outpath = os.path.join(outdir, '{}{}'.format(outname, outext))
-        if outext.lower() in input_exts:
+        if tmpext.lower() in input_exts:
             src = Image.open(path)
             w, h = src.size[:2]
             if args.width != 0:
