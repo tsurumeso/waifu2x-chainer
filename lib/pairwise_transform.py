@@ -47,19 +47,19 @@ def noise(src, p, p_chroma, level):
         return src
 
 
-def scale(src, filters, bmin, bmax, upscaling):
+def scale(src, filters, bmin, bmax, scale):
     h, w = src.shape[:2]
     blur = np.random.uniform(bmin, bmax)
     rand = random.randint(0, len(filters) - 1)
     with iproc.array_to_wand(src) as tmp:
         tmp.resize(w // 2, h // 2, filters[rand], blur)
-        if upscaling:
+        if scale:
             tmp.resize(w, h, 'box')
         dst = iproc.wand_to_array(tmp)
     return dst
 
 
-def noise_scale(src, filters, bmin, bmax, upscaling, p, p_chroma, level):
+def noise_scale(src, filters, bmin, bmax, scale, p, p_chroma, level):
     h, w = src.shape[:2]
     blur = np.random.uniform(bmin, bmax)
     rand = random.randint(0, len(filters) - 1)
@@ -67,7 +67,7 @@ def noise_scale(src, filters, bmin, bmax, upscaling, p, p_chroma, level):
         tmp.resize(w // 2, h // 2, filters[rand], blur)
         if np.random.uniform() < p:
             tmp = _noise(tmp, p_chroma, level)
-        if upscaling:
+        if scale:
             tmp.resize(w, h, 'box')
         dst = iproc.wand_to_array(tmp)
     return dst

@@ -34,7 +34,7 @@ def denoise_image(cfg, src, model):
 def upscale_image(cfg, src, scale_model, alpha_model=None):
     dst, alpha = split_alpha(src, scale_model)
     for i in range(int(np.ceil(np.log2(cfg.scale_ratio)))):
-        six.print_('2.0x upscaling...', end=' ', flush=True)
+        six.print_('2.0x scaling...', end=' ', flush=True)
         model = scale_model if i == 0 or alpha_model is None else alpha_model
         if model.inner_scale == 1:
             dst = iproc.nn_scaling(dst, 2)  # Nearest neighbor 2x scaling
@@ -124,39 +124,39 @@ def load_models(cfg):
     return models
 
 
-p = argparse.ArgumentParser(description='Chainer implementation of waifu2x')
-p.add_argument('--gpu', '-g', type=int, default=-1)
-p.add_argument('--input', '-i', default='images/small.png')
-p.add_argument('--output', '-o', default='./')
-p.add_argument('--extension', '-e', choices=['png', 'webp'], default='png')
-p.add_argument('--quality', '-q', type=int, default=None)
-p.add_argument('--arch', '-a',
-               choices=['VGG7', '0', 'UpConv7', '1',
-                        'ResNet10', '2', 'UpResNet10', '3'],
-               default='VGG7')
-p.add_argument('--model_dir', '-d', default=None)
-p.add_argument('--method', '-m', choices=['noise', 'scale', 'noise_scale'],
-               default='scale')
-p.add_argument('--scale_ratio', '-s', type=float, default=2.0)
-p.add_argument('--noise_level', '-n', type=int, choices=[0, 1, 2, 3],
-               default=1)
-p.add_argument('--color', '-c', choices=['y', 'rgb'], default='rgb')
-p.add_argument('--tta', '-t', action='store_true')
-p.add_argument('--tta_level', '-T', type=int, choices=[2, 4, 8], default=8)
-p.add_argument('--batch_size', '-b', type=int, default=16)
-p.add_argument('--block_size', '-l', type=int, default=128)
-g = p.add_mutually_exclusive_group()
-g.add_argument('--width', '-W', type=int, default=0)
-g.add_argument('--height', '-H', type=int, default=0)
-g.add_argument('--shorter_side', '-S', type=int, default=0)
-g.add_argument('--longer_side', '-L', type=int, default=0)
+def main():
+    p = argparse.ArgumentParser(description='Chainer implementation of waifu2x')
+    p.add_argument('--gpu', '-g', type=int, default=-1)
+    p.add_argument('--input', '-i', default='images/small.png')
+    p.add_argument('--output', '-o', default='./')
+    p.add_argument('--quality', '-q', type=int, default=None)
+    p.add_argument('--model_dir', '-d', default=None)
+    p.add_argument('--scale_ratio', '-s', type=float, default=2.0)
+    p.add_argument('--tta', '-t', action='store_true')
+    p.add_argument('--batch_size', '-b', type=int, default=16)
+    p.add_argument('--block_size', '-l', type=int, default=128)
+    p.add_argument('--extension', '-e', default='png',
+                   choices=['png', 'webp'])
+    p.add_argument('--arch', '-a', default='VGG7',
+                   choices=['VGG7', '0', 'UpConv7', '1', 'ResNet10', '2', 'UpResNet10', '3'])
+    p.add_argument('--method', '-m', default='scale',
+                   choices=['noise', 'scale', 'noise_scale'])
+    p.add_argument('--noise_level', '-n', type=int, default=1,
+                   choices=[0, 1, 2, 3])
+    p.add_argument('--color', '-c', default='rgb',
+                   choices=['y', 'rgb'])
+    p.add_argument('--tta_level', '-T', type=int, default=8,
+                   choices=[2, 4, 8])
+    g = p.add_mutually_exclusive_group()
+    g.add_argument('--width', '-W', type=int, default=0)
+    g.add_argument('--height', '-H', type=int, default=0)
+    g.add_argument('--shorter_side', '-S', type=int, default=0)
+    g.add_argument('--longer_side', '-L', type=int, default=0)
 
-args = p.parse_args()
-if args.arch in srcnn.table:
-    args.arch = srcnn.table[args.arch]
+    args = p.parse_args()
+    if args.arch in srcnn.table:
+        args.arch = srcnn.table[args.arch]
 
-
-if __name__ == '__main__':
     models = load_models(args)
 
     input_exts = ['.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff', '.webp']
@@ -233,3 +233,7 @@ if __name__ == '__main__':
                 outpath, quality=quality, lossless=lossless,
                 icc_profile=icc_profile)
             six.print_('Saved as \'{}\''.format(outpath))
+
+
+if __name__ == '__main__':
+    main()

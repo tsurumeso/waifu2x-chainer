@@ -37,7 +37,7 @@ def denoise_image(cfg, src, model):
 
 def upscale_image(cfg, src, model):
     dst = src.copy()
-    six.print_('2.0x upscaling...', end=' ', flush=True)
+    six.print_('2.0x scaling...', end=' ', flush=True)
     if model.inner_scale == 1:
         dst = iproc.nn_scaling(dst, 2)  # Nearest neighbor 2x scaling
     if cfg.tta:
@@ -85,51 +85,51 @@ def load_models(cfg):
     return models
 
 
-def benchmark(models, images, sampling_factor, quality):
+def benchmark(cfg, models, images, sampling_factor, quality):
     scores = []
     for src in images:
         dst = pairwise_transform.scale(
-            np.array(src), [args.downsampling_filter], 1, 1, False)
-        if quality != 100 or args.method != 'scale':
+            np.array(src), [cfg.downsampling_filter], 1, 1, False)
+        if quality != 100 or cfg.method != 'scale':
             with iproc.array_to_wand(dst) as tmp:
                 tmp = iproc.jpeg(tmp, sampling_factor, quality)
                 dst = iproc.wand_to_array(tmp)
         dst = Image.fromarray(dst)
         if 'noise_scale' in models:
-            dst = upscale_image(args, dst, models['noise_scale'])
+            dst = upscale_image(cfg, dst, models['noise_scale'])
         else:
             if 'noise' in models:
-                dst = denoise_image(args, dst, models['noise'])
+                dst = denoise_image(cfg, dst, models['noise'])
             if 'scale' in models:
-                dst = upscale_image(args, dst, models['scale'])
-        score = iproc.clipped_psnr(
-            np.array(dst), np.array(src), a_max=255)
+                dst = upscale_image(cfg, dst, models['scale'])
+        score = iproc.clipped_psnr(np.array(dst), np.array(src), a_max=255)
         scores.append(score)
     return np.mean(scores), np.std(scores) / np.sqrt(len(scores))
 
 
-p = argparse.ArgumentParser()
-p.add_argument('--gpu', '-g', type=int, default=-1)
-p.add_argument('--input', '-i', default='../images/original.png')
-p.add_argument('--arch', '-a', default='')
-p.add_argument('--method', '-m', choices=['scale', 'noise_scale'],
-               default='scale')
-p.add_argument('--noise_level', '-n', type=int, choices=[0, 1],
-               default=1)
-p.add_argument('--color', '-c', choices=['y', 'rgb'], default='rgb')
-p.add_argument('--tta', '-t', action='store_true')
-p.add_argument('--tta_level', '-T', type=int, choices=[2, 4, 8], default=8)
-p.add_argument('--batch_size', '-b', type=int, default=16)
-p.add_argument('--block_size', '-l', type=int, default=128)
-p.add_argument('--chroma_subsampling', '-j', action='store_true')
-p.add_argument('--downsampling_filter', '-d', default='box')
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument('--gpu', '-g', type=int, default=-1)
+    p.add_argument('--input', '-i', default='../images/original.png')
+    p.add_argument('--arch', '-a', default='')
+    p.add_argument('--tta', '-t', action='store_true')
+    p.add_argument('--batch_size', '-b', type=int, default=16)
+    p.add_argument('--block_size', '-l', type=int, default=128)
+    p.add_argument('--chroma_subsampling', '-j', action='store_true')
+    p.add_argument('--downsampling_filter', '-d', default='box')
+    p.add_argument('--method', '-m', default='scale',
+                   choices=['scale', 'noise_scale'])
+    p.add_argument('--noise_level', '-n', type=int, default=1,
+                   choices=[0, 1])
+    p.add_argument('--color', '-c', default='rgb',
+                   choices=['y', 'rgb'])
+    p.add_argument('--tta_level', '-T', type=int, default=8,
+                   choices=[2, 4, 8])
 
-args = p.parse_args()
-if args.arch in srcnn.table:
-    args.arch = srcnn.table[args.arch]
+    args = p.parse_args()
+    if args.arch in srcnn.table:
+        args.arch = srcnn.table[args.arch]
 
-
-if __name__ == '__main__':
     utils.set_random_seed(0, args.gpu)
 
     if os.path.isdir(args.input):
@@ -161,7 +161,7 @@ if __name__ == '__main__':
         for quality in qualities:
             print(arch, quality)
             start = time.time()
-            score, sem = benchmark(models, images, sampling_factor, quality)
+            score, sem = benchmark(args, models, images, sampling_factor, quality)
             scores.append(score)
             sems.append(sem)
             print('Elapsed time: {:.6f} sec'.format(time.time() - start))
@@ -201,3 +201,7 @@ if __name__ == '__main__':
                      fmt='o-', capsize=3, label=key)
     plt.legend(loc='upper left', edgecolor='white')
     plt.show()
+
+
+if __name__ == '__main__':
+    main()

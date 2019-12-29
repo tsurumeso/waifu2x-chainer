@@ -20,7 +20,7 @@ def rename_caffe_model(dir, filename):
     os.rename(prototxt_path, new_prototxt_path)
 
 
-if __name__ == '__main__':
+def main():
     for key, value in srcnn.archs.items():
         model_dir = '../models/{}'.format(key.lower())
         for filename in os.listdir(model_dir):
@@ -41,3 +41,7 @@ if __name__ == '__main__':
                 except Exception:
                     print('Skipped caffe model export')
                 onnx_chainer.export(model, x, filename=onnx_path)
+
+
+if __name__ == '__main__':
+    main()
