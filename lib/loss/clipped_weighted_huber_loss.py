@@ -34,7 +34,7 @@ class ClippedWeightedHuberLoss(function.Function):
         xp.square(abs_diff, out=abs_diff)
         y = (y - abs_diff) * 0.5
 
-        return y.mean(),
+        return xp.array(y.mean(), dtype=y.dtype),
 
     def backward(self, inputs, grad_outputs):
         xp = cuda.get_array_module(*inputs)
