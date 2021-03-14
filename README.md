@@ -100,7 +100,7 @@ python convert_models.py
 
 Results are saved at the same directory of the original models
 (e.g. models/vgg7/anime_style_scale_rgb.npz to models/vgg7/anime_style_scale_rgb.caffemodel).  
-Note: Since `chainer.CaffeFunction` does not currently support `Slice` layer, some models skip conversion to caffemodel.
+Note: Since `chainer.CaffeFunction` does not currently support `Slice` layer, some models are not converted to caffemodel.
 
 ## References
 
